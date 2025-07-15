@@ -335,8 +335,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* No Results */
@@ -374,13 +378,13 @@
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
   }
-  
+
   .products-header {
     flex-direction: column;
     align-items: stretch;
     gap: 24px;
   }
-  
+
   .products-title-section h1 {
     font-size: 36px;
   }
@@ -390,40 +394,40 @@
   .products-page {
     padding: 20px 0 60px;
   }
-  
+
   .products-container {
     padding: 0 20px;
   }
-  
+
   .products-header {
     margin-bottom: 32px;
   }
-  
+
   .products-title-section h1 {
     font-size: 32px;
   }
-  
+
   .products-controls {
     flex-direction: column;
     gap: 20px;
     padding: 20px;
   }
-  
+
   .products-filters {
     flex-direction: column;
     gap: 16px;
     width: 100%;
   }
-  
+
   .products-select {
     min-width: 100%;
   }
-  
+
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
   }
-  
+
   .pagination-numbers {
     flex-wrap: wrap;
   }
@@ -433,19 +437,202 @@
   .products-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .product-card-image {
     height: 200px;
   }
-  
+
   .pagination-btn {
     padding: 10px 16px;
     font-size: 13px;
   }
-  
+
   .pagination-number {
     width: 36px;
     height: 36px;
     font-size: 13px;
   }
-} 
+}
+
+/* Sidebar Filters Responsive */
+/* تحسين تصميم الشريط الجانبي للفلاتر */
+.sidebar-filters {
+  background: var(--card-bg, #fff) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18), 0 0 0 100vw rgba(0, 0, 0, 0.25) !important;
+  border-radius: 0 22px 22px 0;
+  padding: 2.5rem 2rem 2rem 2rem !important;
+  min-width: 320px;
+  max-width: 420px;
+  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 2000;
+  transform: translateX(-120%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+}
+/* دعم الوضع الليلي للشريط الجانبي للفلاتر */
+[data-theme="dark"] .sidebar-filters,
+.sidebar-filters[data-theme="dark"] {
+  background: #23272f !important;
+  color: #f1f5f9 !important;
+  border-color: #374151 !important;
+}
+[data-theme="dark"] .sidebar-filters .sidebar-title,
+.sidebar-filters[data-theme="dark"] .sidebar-title {
+  color: #60a5fa !important;
+}
+[data-theme="dark"] .sidebar-filters .rounded-lg,
+.sidebar-filters[data-theme="dark"] .rounded-lg {
+  background: #1e222a !important;
+  color: #f1f5f9 !important;
+  border-color: #374151 !important;
+}
+/* دعم كل عناصر الفلاتر للوضع الليلي */
+[data-theme="dark"] .sidebar-filters h3,
+.sidebar-filters[data-theme="dark"] h3 {
+  color: #a5b4fc !important;
+}
+[data-theme="dark"] .sidebar-filters label,
+.sidebar-filters[data-theme="dark"] label,
+[data-theme="dark"] .sidebar-filters span,
+.sidebar-filters[data-theme="dark"] span {
+  color: #e0e7ef !important;
+}
+[data-theme="dark"] .sidebar-filters input[type="checkbox"],
+.sidebar-filters[data-theme="dark"] input[type="checkbox"] {
+  background: #23272f !important;
+  border-color: #374151 !important;
+}
+[data-theme="dark"] .sidebar-filters input[type="range"],
+.sidebar-filters[data-theme="dark"] input[type="range"] {
+  background: #23272f !important;
+}
+[data-theme="dark"] .sidebar-filters button,
+.sidebar-filters[data-theme="dark"] button {
+  background: #23272f !important;
+  color: #60a5fa !important;
+  border-color: #374151 !important;
+}
+[data-theme="dark"] .sidebar-filters button:hover,
+.sidebar-filters[data-theme="dark"] button:hover {
+  background: #2563eb !important;
+  color: #fff !important;
+}
+[data-theme="dark"] .sidebar-filters img,
+.sidebar-filters[data-theme="dark"] img {
+  background: #23272f !important;
+  border-color: #374151 !important;
+}
+.sidebar-filters.open {
+  transform: translateX(0) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18), 0 0 0 100vw rgba(0, 0, 0, 0.25) !important;
+}
+.sidebar-filters .sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #2563eb;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.sidebar-filters .close-btn {
+  position: absolute;
+  top: 18px;
+  left: unset;
+  right: 18px;
+  background: #fff;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 8px #2563eb22;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  z-index: 2200;
+}
+.sidebar-filters .close-btn:hover {
+  background: #2563eb;
+  color: #fff;
+}
+@media (max-width: 1024px) {
+  .sidebar-filters {
+    min-width: 0;
+    width: 85vw;
+    max-width: 350px;
+    border-radius: 0 18px 18px 0;
+    padding: 1.5rem 1rem 2rem 1rem !important;
+  }
+  .sidebar-filters .sidebar-title {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  .sidebar-filters .close-btn {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+  }
+}
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(
+    120deg,
+    rgba(0, 0, 0, 0.18) 0%,
+    rgba(0, 0, 0, 0.38) 100%
+  );
+  z-index: 1999;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+}
+/* تباعد أفضل بين عناصر الفلتر */
+.sidebar-filters .mb-8 {
+  margin-bottom: 2rem !important;
+}
+.sidebar-filters .rounded-lg {
+  border-radius: 16px !important;
+}
+.sidebar-filters .shadow-sm {
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.07) !important;
+}
+.sidebar-filters .flex {
+  gap: 1.2rem;
+}
+
+/* تحسين sidebar في الموبايل */
+@media (max-width: 600px) {
+  .sidebar-filters {
+    width: 75vw !important;
+    max-width: 320px !important;
+    min-width: 0 !important;
+    border-radius: 0 !important;
+    padding: 1rem 0.5rem 1.5rem 0.5rem !important;
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.13);
+  }
+  .sidebar-filters .close-btn {
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    border-width: 1px;
+  }
+  .sidebar-filters .sidebar-title {
+    font-size: 1rem;
+    margin-bottom: 0.7rem;
+  }
+}

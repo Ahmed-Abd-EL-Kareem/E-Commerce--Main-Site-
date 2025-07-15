@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCart } from "../../context/CartContext";
+// لم نعد بحاجة لاستخدام useCart هنا
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import "./ProductDetails.css";
+
+const USER_ID = "68491edde1d3d434b3eeed3b"; // ثابت حسب طلبك
 
 const ProductDetails = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === "ar" ? "ar" : "en";
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { addToCart, isInCart, getItemQuantity } = useCart();
+  // لم نعد بحاجة لاستخدام useCart هنا
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ const ProductDetails = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [addToCartSuccess, setAddToCartSuccess] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,40 +62,50 @@ const ProductDetails = () => {
     }
   }, [productId, t]);
 
+  // دالة إضافة للسلة (API)
+  const handleAddToCartAPI = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:3000/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: { $oid: USER_ID },
+          items: [
+            {
+              product: product._id || product.id,
+              sku: currentOption?.sku || product.sku || "",
+              quantity: quantity,
+            },
+          ],
+          notes: {
+            en: "Fast delivery please",
+            ar: "يرجى التوصيل بسرعة",
+          },
+        }),
+      });
+      if (!res.ok) throw new Error("فشل الإضافة للسلة");
+      setAddToCartSuccess(true);
+      alert(
+        lang === "ar" ? "تمت الإضافة للسلة بنجاح" : "Added to cart successfully"
+      );
+    } catch {
+      setAddToCartSuccess(false);
+      alert(
+        lang === "ar" ? "حدث خطأ أثناء الإضافة للسلة" : "Error adding to cart"
+      );
+    }
+  };
+
   const handleAddToCart = () => {
     if (!product) return;
-    const cartProduct = {
-      id: product._id || product.id,
-      name: product.name?.[lang] || product.name?.en || product.name,
-      price:
-        product.bestPriceAfterDiscount || product.basePrice || product.price,
-      image: product.images?.[0]?.url,
-      category:
-        product.category?.name?.[lang] ||
-        product.category?.name?.en ||
-        product.category?.name ||
-        product.category,
-      brand:
-        product.brand?.name?.[lang] ||
-        product.brand?.name?.en ||
-        product.brand?.name ||
-        product.brand,
-      quantity: quantity,
-    };
-    for (let i = 0; i < quantity; i++) {
-      addToCart(cartProduct);
-    }
-    toast.success(
-      t("cart.addedToCart", { product: cartProduct.name, count: quantity }),
-      {
-        icon: "🛒",
-        style: {
-          background: "#10b981",
-          color: "#ffffff",
-        },
-      }
-    );
+    // فقط أرسل الطلب إلى السيرفر وغير حالة الزر
+    handleAddToCartAPI();
   };
+
+  // إعادة الزر للحالة الأصلية عند تغيير المتغير أو الخيار
+  useEffect(() => {
+    setAddToCartSuccess(false);
+  }, [selectedOption]);
 
   const handleRelatedProductClick = (relatedProduct) => {
     navigate(`/product/${relatedProduct._id || relatedProduct.id}`);
@@ -181,7 +194,13 @@ const ProductDetails = () => {
         <span className="breadcrumb-separator">/</span>
         <span
           onClick={() =>
-            navigate(`/category/${product.category?.slug || product.category}`)
+            navigate(
+              `/products?category=${
+                typeof product.category?.slug === "object"
+                  ? product.category.slug.en
+                  : product.category?.slug || product.category
+              }`
+            )
           }
           className="breadcrumb-link"
         >
@@ -380,21 +399,22 @@ const ProductDetails = () => {
 
           <div className="action-buttons">
             <button
-              className={`add-to-cart-btn ${
-                isInCart(product._id || product.id) ? "in-cart" : ""
-              }`}
+              className={`add-to-cart-btn ${addToCartSuccess ? "in-cart" : ""}`}
               onClick={handleAddToCart}
               disabled={stock === 0}
+              style={
+                addToCartSuccess ? { background: "#10b981", color: "#fff" } : {}
+              }
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z" />
                 <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z" />
                 <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6" />
               </svg>
-              {isInCart(product._id || product.id)
-                ? t("cart.inCart", {
-                    count: getItemQuantity(product._id || product.id),
-                  })
+              {addToCartSuccess
+                ? lang === "ar"
+                  ? "في السلة"
+                  : "In Cart"
                 : t("cart.addToCart")}
             </button>
 

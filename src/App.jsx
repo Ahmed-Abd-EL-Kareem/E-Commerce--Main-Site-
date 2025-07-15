@@ -13,6 +13,7 @@ import Footer from "./components/Footer/Footer";
 import { CartProvider } from "./context/CartContext";
 import { SearchProvider } from "./context/SearchContext";
 import { Toaster } from "react-hot-toast";
+import ExclusiveOffers from "./pages/ExclusiveOffers/ExclusiveOffers";
 
 function App() {
   return (
@@ -86,6 +87,7 @@ function App() {
                   }
                 />
                 <Route path="/products" element={<Products />} />
+                <Route path="/exclusive-offers" element={<ExclusiveOffers />} />
                 <Route
                   path="/categories"
                   element={

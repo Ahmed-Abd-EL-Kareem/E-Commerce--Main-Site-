@@ -39,13 +39,26 @@
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: #2563eb #f8fafc;
   padding: 0.5rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .categories-scroll::-webkit-scrollbar {
-  display: none;
+  height: 6px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.categories-scroll::-webkit-scrollbar-thumb {
+  background: #2563eb33;
+  border-radius: 8px;
+}
+
+.categories-scroll::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .category-btn {
@@ -371,4 +384,9 @@
   .categories-nav::after {
     display: none;
   }
+}
+
+/* قائمة Show More المنسدلة في التصنيفات */
+.show-more-dropdown {
+  z-index: 2000 !important;
 }
