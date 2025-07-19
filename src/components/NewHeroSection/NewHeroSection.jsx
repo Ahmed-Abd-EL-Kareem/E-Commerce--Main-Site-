@@ -66,97 +66,117 @@ const NewHeroSection = () => {
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div className="relative">
-          <Swiper
-            effect="cards"
-            grabCursor={true}
-            modules={[EffectCards, Autoplay, Mousewheel, Keyboard, Pagination]}
-            autoplay={{ delay: 3000, disableOnInteraction: false }}
-            loop={true}
-            mousewheel={{ enabled: true }}
-            keyboard={{ enabled: true }}
-            pagination={{
-              clickable: true,
-              renderBullet: (index, className) => `<span class="${className} new-hero-pagination-bullet"></span>`,
-            }}
-            speed={800}
-            slidesPerView={1}
-            watchSlidesProgress={true}
-            onSlideChange={(swiper) => console.log('Slide changed to:', swiper.activeIndex)}
-            className="w-full max-w-sm mx-auto"
-          >
-            {heroProducts.map((product) => (
-              <SwiperSlide key={product.id}>
-                <div 
-                  onClick={() => handleProductClick(product)} 
-                  className="rounded-3xl shadow-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-3xl hover:-translate-y-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                >
-                  <div className="relative p-6 h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-700">
-                    <img 
-                      src={product.thumbnail} 
-                      alt={product.title} 
-                      loading="lazy"
-                      className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
-                    />
-                    {product.discountPercentage > 0 && (
-                      <div className="absolute top-4 right-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg"
-                        style={{
-                          background: 'linear-gradient(to right, var(--error-gradient-from, #ef4444), var(--error-gradient-to, #dc2626))'
-                        }}
-                      >
-                        -{Math.round(product.discountPercentage)}%
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6 bg-white dark:bg-slate-800">
-                    <div className="text-sm font-semibold uppercase tracking-wide mb-2 text-blue-600 dark:text-blue-400">
-                      {product.brand || product.category}
-                    </div>
-                    
-                    <h3 className="text-xl font-bold mb-3 line-clamp-2 leading-tight text-slate-900 dark:text-white">
-                      {product.title}
-                    </h3>
-                    
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <svg 
-                            key={i} 
-                            className="w-4 h-4"
-                            style={{ 
-                              color: i < Math.floor(product.rating) 
-                                ? '#fbbf24' 
-                                : '#d1d5db'
-                            }}
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 14 14" 
-                            fill="currentColor"
-                          >
-                            <path d="M7 1L8.545 4.13L12 4.635L9.5 7.07L10.09 10.5L7 8.885L3.91 10.5L4.5 7.07L2 4.635L5.455 4.13L7 1Z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                        ({product.rating})
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                        ${getDiscountedPrice(product)}
-                      </span>
+          {heroProducts.length > 1 ? (
+            <Swiper
+              effect="cards"
+              grabCursor={true}
+              modules={[EffectCards, Autoplay, Mousewheel, Keyboard, Pagination]}
+              autoplay={{ delay: 3000, disableOnInteraction: false }}
+              loop={heroProducts.length > 1}
+              mousewheel={{ enabled: true }}
+              keyboard={{ enabled: true }}
+              pagination={{
+                clickable: true,
+                renderBullet: (index, className) => `<span class="${className} new-hero-pagination-bullet"></span>`,
+              }}
+              speed={800}
+              slidesPerView={1}
+              watchSlidesProgress={true}
+              onSlideChange={(swiper) => console.log('Slide changed to:', swiper.activeIndex)}
+              className="w-full max-w-sm mx-auto"
+            >
+              {heroProducts.map((product) => (
+                <SwiperSlide key={product.id}>
+                  <div 
+                    onClick={() => handleProductClick(product)} 
+                    className="rounded-3xl shadow-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-3xl hover:-translate-y-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  >
+                    <div className="relative p-6 h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-700">
+                      <img 
+                        src={product.thumbnail} 
+                        alt={product.title} 
+                        loading="lazy"
+                        className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+                      />
                       {product.discountPercentage > 0 && (
-                        <span className="text-lg line-through text-slate-500 dark:text-slate-400">
-                          ${product.price}
-                        </span>
+                        <div className="absolute top-4 right-4 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg"
+                          style={{
+                            background: 'linear-gradient(to right, var(--error-gradient-from, #ef4444), var(--error-gradient-to, #dc2626))'
+                          }}
+                        >
+                          -{Math.round(product.discountPercentage)}%
+                        </div>
                       )}
                     </div>
+                    
+                    <div className="p-6 bg-white dark:bg-slate-800">
+                      <div className="text-sm font-semibold uppercase tracking-wide mb-2 text-blue-600 dark:text-blue-400">
+                        {product.brand || product.category}
+                      </div>
+                      
+                      <h3 className="text-xl font-bold mb-3 line-clamp-2 leading-tight text-slate-900 dark:text-white">
+                        {product.title}
+                      </h3>
+                      
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <svg 
+                              key={i} 
+                              className="w-4 h-4"
+                              style={{ 
+                                color: i < Math.floor(product.rating) 
+                                  ? '#fbbf24' 
+                                  : '#d1d5db'
+                              }}
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 14 14" 
+                              fill="currentColor"
+                            >
+                              <path d="M7 1L8.545 4.13L12 4.635L9.5 7.07L10.09 10.5L7 8.885L3.91 10.5L4.5 7.07L2 4.635L5.455 4.13L7 1Z" />
+                            </svg>
+                          ))}
+                        </div>
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                          ({product.rating})
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                          ${getDiscountedPrice(product)}
+                        </span>
+                        {product.discountPercentage > 0 && (
+                          <span className="text-lg line-through text-slate-500 dark:text-slate-400">
+                            ${product.price}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div className="text-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl">
+              <p className="text-lg text-slate-900 dark:text-white">
+                {heroProducts.length === 1 ? (
+                  <>
+                    <img 
+                      src={heroProducts[0].thumbnail} 
+                      alt={heroProducts[0].title} 
+                      loading="lazy"
+                      className="w-full h-64 object-contain mx-auto"
+                    />
+                    <strong>{heroProducts[0].title}</strong>
+                  </>
+                ) : (
+                  'No hero products available.'
+                )}
+              </p>
+            </div>
+          )}
         </div>
         
         <div className="text-center lg:text-left">
@@ -203,7 +223,7 @@ const NewHeroSection = () => {
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         .new-hero-pagination-bullet {
           width: 10px;
           height: 10px;

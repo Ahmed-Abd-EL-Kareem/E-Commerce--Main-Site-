@@ -106,7 +106,9 @@ const FeaturedSection = ({ product, loading }) => {
                 </svg>
               </span>
               <div className="flex flex-col items-start flex-1">
-                <span className="text-xs font-semibold" style={{ color: 'var(--secondary-text)' }}>{product.brand || 'STOCKMART'}</span>
+              <span className="text-xs font-semibold" style={{ color: 'var(--secondary-text)' }}>
+                {product.brand ? (product.brand.name?.en || 'STOCKMART') : 'STOCKMART'}
+              </span>
                 <span className="font-semibold" style={{ color: 'var(--primary-text)' }}>{product.title || 'Featured Product'}</span>
               </div>
               <span className="font-bold text-lg" style={{ color: 'var(--accent-text, #2563eb)' }}>{t('common.currency')}{product.price || '215.00'}</span>

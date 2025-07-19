@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 const BestsellersSection = ({ products, loading }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { addToCart, isInCart, getItemQuantity } = useCart();
+  const { addToCart } = useCart();
   const { addToFavorites, isInFavorites, removeFromFavorites } = useFavorites();
   const { isAuthenticated } = useAuth();
 
@@ -98,10 +98,10 @@ const BestsellersSection = ({ products, loading }) => {
               </button>
             </div>
             {/* Product Cards */}
-            {products.slice(0, 9).map((product) => (
+            {products.slice(0, 9).map((product, index) => (
               <div
                 className="relative flex flex-col justify-between p-6 md:p-5 lg:p-5 xl:p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 transition-all duration-300 h-full cursor-pointer hover:shadow-[0_8px_32px_rgba(37,99,235,0.15)] hover:-translate-y-1 hover:border-blue-400 col-span-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                key={product.id}
+                key={product.id || index}
                 onClick={() => handleProductClick(product)}
               >
                 {product.discountPercentage > 0 && (
@@ -126,7 +126,9 @@ const BestsellersSection = ({ products, loading }) => {
                 </div>
                 <div className="flex justify-between items-center text-xs mb-2 text-slate-600 dark:text-slate-400">
                   <span>{t('bestsellers.stockBrand')}</span>
-                  <span className="font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide text-sm">{product.brand || product.category}</span>
+                  <span className="font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wide text-sm">
+                    {product.brand ? (product.brand.name?.en || '') : (product.category?.name?.en || '')}
+                  </span>
                 </div>
                 <h3 className="text-base lg:text-base xl:text-lg font-semibold mb-2 leading-tight line-clamp-2 min-h-[2.8em] text-slate-900 dark:text-white">
                   {product.title}

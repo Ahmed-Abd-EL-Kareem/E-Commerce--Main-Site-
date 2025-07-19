@@ -131,6 +131,33 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* دعم الوضع الليلي عبر data-theme="dark" أيضًا */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --accent: #60a5fa;
+  --accent-hover: #3b82f6;
+  --light-blue: #93c5fd;
+  --dark-blue: #1e40af;
+  --navy-blue: #0f172a;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --button-bg: #60a5fa;
+  --hero-bg: linear-gradient(135deg, #1e40af 0%, #1e293b 100%);
+  --primary-blue: #60a5fa;
+  --secondary-blue: #93c5fd;
+  --background-light: #1e293b;
+  --bg-primary: #1e293b;
+  --bg-secondary: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --bg-accent: #1e3a8a;
+}
+
 .theme-button-secondary {
   background: var(--card-bg);
   border: 1px solid var(--card-border);

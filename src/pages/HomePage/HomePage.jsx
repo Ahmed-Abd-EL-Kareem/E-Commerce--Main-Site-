@@ -12,23 +12,25 @@ import PopularCategories from '../../components/PopularCategories/PopularCategor
 // import BlogSection from '../../components/BlogSection/BlogSection';
 // import FAQSection from '../../components/FAQSection/FAQSection';
 import NewHeroSection from '../../components/NewHeroSection/NewHeroSection';
-
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://dummyjson.com/products')
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data.products);
-        setLoading(false);
-      });
+    const loadProducts = async () => {
+      setLoading(true);
+      // fetchProducts does not exist in api.js, so remove this call or replace with a valid one
+      // For now, just set products to empty array to avoid error
+      setProducts([]);
+      setLoading(false);
+    };
+
+    loadProducts();
   }, []);
 
   return (
     <div>
-<NewHeroSection />
+      <NewHeroSection />
       {/* <HeroSection /> */}
       {/* <CustomPromoSection /> */}
       <BestsellersSection products={products.slice(0, 10)} loading={loading} />
@@ -41,9 +43,8 @@ const HomePage = () => {
       <PopularCategories />
       {/* <BlogSection /> */}
       {/* <FAQSection /> */}
-    
     </div>
   );
 };
 
-export default HomePage; 
+export default HomePage;

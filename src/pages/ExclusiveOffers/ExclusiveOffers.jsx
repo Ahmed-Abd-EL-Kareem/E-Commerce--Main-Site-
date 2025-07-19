@@ -1,31 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useCategory } from "../../context/CategoryContext";
-import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import Loading from "../../components/Loading/Loading";
+import { useNavigate } from "react-router-dom";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import ProductCard from "../../components/ProductCard/ProductCard";
+import Loading from "../../components/Loading/Loading";
 
 const MAX_PRICE = 47000;
 const MIN_PRICE = 0;
 const BRANDS_TO_SHOW = 5;
 
-const Products = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  const categorySlug = (params.get("category") || "all").toLowerCase();
-  const { setSelectedCategory } = useCategory();
+const ExclusiveOffers = () => {
   const { t, i18n } = useTranslation();
   const language = i18n.language === "ar" ? "ar" : "en";
+  const navigate = useNavigate();
 
-  // --- فلترة ---
+  // فلترة
   const [selectedBrands, setSelectedBrands] = React.useState([]);
   const [priceRange, setPriceRange] = React.useState([0, 35000]);
   const [rating, setRating] = React.useState(0);
   const [brands, setBrands] = React.useState([]);
+  const [products, setProducts] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // حالة ظهور الفلتر في الشاشات الصغيرة والمتوسطة
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -35,51 +31,20 @@ const Products = () => {
       ? window.matchMedia("(min-width: 1200px)").matches
       : true
   );
-  // تتبع الوضع الليلي/الفاتح
-  const [themeMode, setThemeMode] = useState(() =>
-    typeof document !== "undefined"
-      ? document.documentElement.getAttribute("data-theme") || ""
-      : ""
-  );
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setThemeMode(document.documentElement.getAttribute("data-theme") || "");
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-    return () => observer.disconnect();
-  }, []);
 
-  // تتبع حجم الشاشة في كل تغيير
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1200px)");
     const handleChange = () => {
       setIsLargeScreen(mediaQuery.matches);
-      console.log(
-        "isLargeScreen:",
-        mediaQuery.matches,
-        "window.innerWidth:",
-        window.innerWidth
-      );
     };
-    handleChange(); // تحديث عند mount
+    handleChange();
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // الاستماع لحدث الفلتر دائمًا في جميع الشاشات غير الكبيرة
   useEffect(() => {
     if (isLargeScreen) return;
     const toggleFilter = () => {
-      console.log(
-        "toggleProductFilter event received!",
-        "isLargeScreen:",
-        isLargeScreen,
-        "window.innerWidth:",
-        window.innerWidth
-      );
       setIsFilterOpen((prev) => !prev);
     };
     window.addEventListener("toggleProductFilter", toggleFilter);
@@ -87,7 +52,6 @@ const Products = () => {
       window.removeEventListener("toggleProductFilter", toggleFilter);
   }, [isLargeScreen]);
 
-  // منع تمرير الصفحة عند فتح الفلتر في الشاشات الصغيرة والمتوسطة
   useEffect(() => {
     if (!isLargeScreen && isFilterOpen) {
       document.body.style.overflow = "hidden";
@@ -99,33 +63,7 @@ const Products = () => {
     };
   }, [isLargeScreen, isFilterOpen]);
 
-  // بناء رابط الفلترة
-  const buildApiUrl = () => {
-    let url = `http://127.0.0.1:3000/api/product?categorySlug=${categorySlug}`;
-    if (selectedBrands.length > 0) {
-      url += `&brandSlug=${selectedBrands.join(",")}`;
-    }
-    if (priceRange[0] > MIN_PRICE) url += `&basePrice[gte]=${priceRange[0]}`;
-    if (priceRange[1] < MAX_PRICE) url += `&basePrice[lte]=${priceRange[1]}`;
-    if (rating > 0) url += `&averageRating[gte]=${rating}`;
-    return url;
-  };
-
-  // جلب المنتجات حسب الفلاتر
-  const fetchProducts = async () => {
-    const res = await fetch(buildApiUrl());
-    const data = await res.json();
-    return data.data;
-  };
-
-  // جلب المنتجات
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["products", categorySlug, selectedBrands, priceRange, rating],
-    queryFn: fetchProducts,
-    keepPreviousData: true,
-  });
-
-  // جلب العلامات التجارية من API
+  // جلب العلامات التجارية
   React.useEffect(() => {
     const fetchBrands = async () => {
       try {
@@ -139,62 +77,45 @@ const Products = () => {
     fetchBrands();
   }, []);
 
-  React.useEffect(() => {
-    setSelectedCategory(categorySlug);
-  }, [categorySlug, setSelectedCategory]);
-
-  // تحديث الفلاتر من الـ URL عند التحميل الأولي
-  React.useEffect(() => {
-    // Brands
-    const brandsParam = params.get("brands") || params.get("Brands");
-    if (brandsParam) {
-      setSelectedBrands(brandsParam.split(","));
-    } else {
-      setSelectedBrands([]);
-    }
-    // Price
-    const minPrice = params.get("minPrice");
-    const maxPrice = params.get("maxPrice");
-    if (minPrice || maxPrice) {
-      setPriceRange([
-        minPrice ? Number(minPrice) : 0,
-        maxPrice ? Number(maxPrice) : 35000,
-      ]);
-    } else {
-      setPriceRange([0, 35000]);
-    }
-    // Rating
-    const ratingParam = params.get("rating");
-    if (ratingParam) {
-      setRating(Number(ratingParam));
-    } else {
-      setRating(0);
-    }
-    // eslint-disable-next-line
-  }, [location.search]);
-
-  // تحديث الـ URL عند تغيير الفلاتر
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams();
-    urlParams.set("category", categorySlug);
+  // بناء رابط الفلترة
+  const buildApiUrl = () => {
+    let url = `http://127.0.0.1:3000/api/product/?variants.options.discount[gt]=0`;
     if (selectedBrands.length > 0) {
-      urlParams.set("brands", selectedBrands.join(","));
+      url += `&brandSlug=${selectedBrands.join(",")}`;
     }
-    if (priceRange[0] > MIN_PRICE) urlParams.set("minPrice", priceRange[0]);
-    if (priceRange[1] < MAX_PRICE) urlParams.set("maxPrice", priceRange[1]);
-    if (rating > 0) urlParams.set("rating", rating);
-    const newUrl = `/products?${urlParams.toString()}`;
-    if (location.pathname + location.search !== newUrl) {
-      navigate(newUrl, { replace: true });
-    }
-    // eslint-disable-next-line
-  }, [selectedBrands, priceRange, rating, categorySlug]);
+    if (priceRange[0] > MIN_PRICE) url += `&basePrice[gte]=${priceRange[0]}`;
+    if (priceRange[1] < MAX_PRICE) url += `&basePrice[lte]=${priceRange[1]}`;
+    if (rating > 0) url += `&averageRating[gte]=${rating}`;
+    return url;
+  };
 
-  // --- واجهة الفلاتر ---
+  // جلب المنتجات حسب الفلاتر
+  React.useEffect(() => {
+    setIsLoading(true);
+    fetch(buildApiUrl())
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(
+          data.data && Array.isArray(data.data)
+            ? data.data
+            : data.data && Array.isArray(data.data.products)
+            ? data.data.products
+            : Array.isArray(data.products)
+            ? data.products
+            : []
+        );
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+    // eslint-disable-next-line
+  }, [selectedBrands, priceRange, rating]);
+
+  // واجهة الفلاتر
   const [showAllBrands, setShowAllBrands] = React.useState(false);
   const brandsToDisplay = showAllBrands
     ? brands
     : brands.slice(0, BRANDS_TO_SHOW);
+
   return (
     <div className="flex gap-8">
       {/* Overlay في الشاشات الصغيرة والمتوسطة */}
@@ -209,13 +130,10 @@ const Products = () => {
       {/* Sidebar في الشاشات الصغيرة والمتوسطة */}
       {!isLargeScreen && (
         <aside
-          className={`fixed top-0 left-0 h-full w-[75vw] max-w-xs min-w-0 shadow-2xl flex flex-col gap-6 p-4
+          className={`fixed top-0 left-0 h-full w-[75vw] max-w-xs min-w-0 bg-white shadow-2xl flex flex-col gap-6 p-4
             transition-transform duration-300 z-[9999] border-none rounded-none overflow-y-auto
-            ${
-              isFilterOpen ? "translate-x-0" : "-translate-x-full"
-            } sidebar-filters`}
-          data-theme={themeMode}
-          style={{ borderRadius: 0, background: "var(--card-bg)" }}
+            ${isFilterOpen ? "translate-x-0" : "-translate-x-full"}`}
+          style={{ borderRadius: 0 }}
         >
           {/* زر إغلاق دائري صغير في الأعلى يمين */}
           <button
@@ -229,7 +147,6 @@ const Products = () => {
           <div className="sidebar-title text-lg font-bold text-blue-700 mb-4 text-center">
             {language === "ar" ? "فلترة المنتجات" : "Filter Products"}
           </div>
-          {/* باقي عناصر الفلتر */}
           {/* العلامة التجارية */}
           <div
             className="mb-8 rounded-lg shadow-sm flex flex-col"
@@ -308,7 +225,7 @@ const Products = () => {
               </button>
             </div>
           </div>
-          {/* السعر (شريط مزدوج) */}
+          {/* السعر */}
           <div
             className="mb-8 rounded-lg shadow-sm flex flex-col"
             style={{
@@ -405,15 +322,13 @@ const Products = () => {
       {/* Sidebar في الشاشات الكبيرة */}
       {isLargeScreen && (
         <aside
-          className="sidebar-filters sticky top-8 self-start min-w-[260px] max-h-[calc(100vh-40px)] h-[calc(100vh-40px)] flex flex-col shadow-xl z-10 overflow-y-auto border-none gap-8 py-10 px-4"
-          data-theme={themeMode}
-          style={{ color: "var(--text)", background: "var(--card-bg)" }}
+          className="sidebar-filters sticky top-8 self-start min-w-[260px] max-h-[calc(100vh-40px)] h-[calc(100vh-40px)] flex flex-col shadow-xl z-10 overflow-y-auto border-none gap-8 py-10 px-4 bg-white"
+          style={{ color: "var(--text)" }}
         >
           {/* عنوان الفلتر */}
-          <div className="sidebar-title text-xl font-bold text-blue-700 mb-6 text-center">
+          <div className="sidebar-title text-lg font-bold text-blue-700 mb-4 text-center">
             {language === "ar" ? "فلترة المنتجات" : "Filter Products"}
           </div>
-          {/* باقي عناصر الفلتر */}
           {/* العلامة التجارية */}
           <div
             className="mb-8 rounded-lg shadow-sm flex flex-col"
@@ -492,7 +407,7 @@ const Products = () => {
               </button>
             </div>
           </div>
-          {/* السعر (شريط مزدوج) */}
+          {/* السعر */}
           <div
             className="mb-8 rounded-lg shadow-sm flex flex-col"
             style={{
@@ -588,12 +503,21 @@ const Products = () => {
       )}
       {/* المنتجات */}
       <div style={{ flex: 1 }}>
-        <div className="recommendations-section">
-          {isLoading ? (
-            <Loading />
-          ) : (
-            <div className="grid gap-6 p-6 w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
-              {products?.map((product) => (
+        {/* تم حذف عنوان ووصف الصفحة بناءً على طلب المستخدم */}
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <div className="grid gap-6 p-6 w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+            {products.length === 0 ? (
+              <div className="products-no-results">
+                <h3>
+                  {language === "ar"
+                    ? "لا توجد عروض حالياً"
+                    : "No offers available now"}
+                </h3>
+              </div>
+            ) : (
+              products.map((product) => (
                 <ProductCard
                   key={product._id}
                   product={product}
@@ -601,13 +525,13 @@ const Products = () => {
                   t={t}
                   navigate={navigate}
                 />
-              ))}
-            </div>
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default Products;
+export default ExclusiveOffers;
