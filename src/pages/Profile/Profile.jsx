@@ -30,6 +30,9 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
@@ -79,21 +82,31 @@ const Profile = () => {
     const newErrors = {};
 
     if (!profileData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+      newErrors.firstName = t('profile.firstNameRequired') || 'First name is required';
     }
 
     if (!profileData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+      newErrors.lastName = t('profile.lastNameRequired') || 'Last name is required';
     }
 
     if (!profileData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = t('profile.emailRequired') || 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('profile.emailInvalid') || 'Please enter a valid email address';
     }
 
     if (profileData.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(profileData.phone)) {
-      newErrors.phone = 'Please enter a valid phone number';
+      newErrors.phone = t('profile.phoneInvalid') || 'Please enter a valid phone number';
+    }
+
+    // Validate address fields if address tab is active
+    if (activeTab === 'address') {
+      if (profileData.address.street && !profileData.address.city) {
+        newErrors.addressCity = t('profile.cityRequired') || 'City is required when street is provided';
+      }
+      if (profileData.address.city && !profileData.address.country) {
+        newErrors.addressCountry = t('profile.countryRequired') || 'Country is required when city is provided';
+      }
     }
 
     setErrors(newErrors);
@@ -174,19 +187,39 @@ const Profile = () => {
     }
 
     setIsLoading(true);
+    setShowSuccessMessage(false);
+    setShowErrorMessage(false);
+    
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      await updateProfile({
+      // Prepare the updated profile data
+      const updatedProfileData = {
         ...profileData,
         profileImage: imagePreview || user?.profileImage
-      });
+      };
+
+      // Call the updateProfile function from AuthContext
+      const success = await updateProfile(updatedProfileData);
       
-      setIsEditing(false);
-      setUploadProgress(0);
+      if (success) {
+        // Show success message
+        setShowSuccessMessage(true);
+        setIsEditing(false);
+        setUploadProgress(0);
+        setImagePreview(null);
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 3000);
+      } else {
+        // Show error message
+        setErrorMessage(t('profile.saveError') || 'Failed to update profile. Please try again.');
+        setShowErrorMessage(true);
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
+      setErrorMessage(t('profile.saveError') || 'An error occurred while updating your profile.');
+      setShowErrorMessage(true);
     } finally {
       setIsLoading(false);
     }
@@ -241,6 +274,54 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Success Notification */}
+        {showSuccessMessage && (
+          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-4 flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-green-800 dark:text-green-200 font-medium">
+                {t('profile.saveSuccess') || 'Profile updated successfully!'}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSuccessMessage(false)}
+              className="flex-shrink-0 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Error Notification */}
+        {showErrorMessage && (
+          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-4 flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-red-800 dark:text-red-200 font-medium">
+                {errorMessage}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowErrorMessage(false)}
+              className="flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
@@ -339,18 +420,23 @@ const Profile = () => {
                     <button
                       onClick={handleSaveProfile}
                       disabled={isLoading}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-xl transition-colors duration-200"
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:shadow-none"
                     >
                       {isLoading ? (
-                        <div className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          {t('profile.saving')}
-                        </div>
+                          <span>{t('profile.saving')}</span>
+                        </>
                       ) : (
-                        t('profile.saveChanges')
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>{t('profile.saveChanges')}</span>
+                        </>
                       )}
                     </button>
                     <button
@@ -553,6 +639,9 @@ const Profile = () => {
                             : 'border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 cursor-not-allowed'
                         } text-slate-900 dark:text-white`}
                       />
+                      {errors.addressStreet && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.addressStreet}</p>
+                      )}
                     </div>
 
                     <div>
@@ -571,6 +660,9 @@ const Profile = () => {
                             : 'border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 cursor-not-allowed'
                         } text-slate-900 dark:text-white`}
                       />
+                      {errors.addressCity && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.addressCity}</p>
+                      )}
                     </div>
 
                     <div>
@@ -625,6 +717,9 @@ const Profile = () => {
                             : 'border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 cursor-not-allowed'
                         } text-slate-900 dark:text-white`}
                       />
+                      {errors.addressCountry && (
+                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.addressCountry}</p>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -61,7 +61,7 @@ const SearchDropdown = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full left-0 right-0 z-50 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-md mt-2 max-h-[500px] overflow-y-auto animate-in slide-in-from-top-2 duration-200"
+    <div className="absolute top-full left-0 right-0 z-[9999] rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.15)] backdrop-blur-md mt-2 max-h-[500px] overflow-y-auto animate-in slide-in-from-top-2 duration-200"
       style={{
         background: 'var(--card-bg)',
         border: '1px solid var(--card-border)'

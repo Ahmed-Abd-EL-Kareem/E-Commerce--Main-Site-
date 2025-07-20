@@ -57,6 +57,9 @@ const FeaturedSection = ({ product, loading }) => {
             src={product.thumbnail || headphone2}
             alt={product.title || 'Featured Product'}
             className="w-full h-full max-w-[700px] max-h-[700px] object-cover rounded-t-2xl lg:rounded-l-2xl lg:rounded-t-none transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              e.target.src = headphone2;
+            }}
           />
           {/* Subtle overlay gradient */}
           <div className="absolute inset-0 pointer-events-none z-10"
@@ -107,7 +110,7 @@ const FeaturedSection = ({ product, loading }) => {
               </span>
               <div className="flex flex-col items-start flex-1">
               <span className="text-xs font-semibold" style={{ color: 'var(--secondary-text)' }}>
-                {product.brand ? (product.brand.name?.en || 'STOCKMART') : 'STOCKMART'}
+                {product.brand || 'STOCKMART'}
               </span>
                 <span className="font-semibold" style={{ color: 'var(--primary-text)' }}>{product.title || 'Featured Product'}</span>
               </div>

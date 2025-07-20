@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import HeroSection from '../../components/HeroSection/HeroSection';
 // import CustomPromoSection from '../../components/CustomPromoSection/CustomPromoSection';
 import BestsellersSection from '../../components/BestsellersSection/BestsellersSection';
@@ -12,33 +13,73 @@ import PopularCategories from '../../components/PopularCategories/PopularCategor
 // import BlogSection from '../../components/BlogSection/BlogSection';
 // import FAQSection from '../../components/FAQSection/FAQSection';
 import NewHeroSection from '../../components/NewHeroSection/NewHeroSection';
+import { 
+  fetchAllProducts, 
+  fetchFeaturedProducts, 
+  fetchBestsellerProducts,
+  transformProducts 
+} from '../../utils/api';
+
 const HomePage = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Use React Query for data fetching with the new API utility functions
+  const { data: allProducts = [], isLoading: allProductsLoading } = useQuery({
+    queryKey: ["homepage-all-products"],
+    queryFn: fetchAllProducts,
+  });
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true);
-      // fetchProducts does not exist in api.js, so remove this call or replace with a valid one
-      // For now, just set products to empty array to avoid error
-      setProducts([]);
-      setLoading(false);
-    };
+  const { data: featuredProducts = [], isLoading: featuredLoading } = useQuery({
+    queryKey: ["homepage-featured-products"],
+    queryFn: fetchFeaturedProducts,
+  });
 
-    loadProducts();
-  }, []);
+  const { data: bestsellerProducts = [], isLoading: bestsellerLoading } = useQuery({
+    queryKey: ["homepage-bestseller-products"],
+    queryFn: fetchBestsellerProducts,
+  });
+
+  // Transform API data to match component expectations
+  const transformedAllProducts = transformProducts(allProducts);
+  const transformedFeaturedProducts = transformProducts(featuredProducts);
+  const transformedBestsellerProducts = transformProducts(bestsellerProducts);
+
+  // Use all products as fallback if bestseller products are empty
+  const productsToShow = transformedBestsellerProducts.length > 0 
+    ? transformedBestsellerProducts 
+    : transformedAllProducts;
+
+  // Debug logging
+  console.log('HomePage Debug:', {
+    allProducts: allProducts.length,
+    featuredProducts: featuredProducts.length,
+    bestsellerProducts: bestsellerProducts.length,
+    transformedBestsellerProducts: transformedBestsellerProducts.length,
+    transformedAllProducts: transformedAllProducts.length,
+    productsToShow: productsToShow.length,
+    bestsellerLoading,
+    allProductsLoading,
+    usingFallback: transformedBestsellerProducts.length === 0 && transformedAllProducts.length > 0
+  });
 
   return (
     <div>
       <NewHeroSection />
       {/* <HeroSection /> */}
       {/* <CustomPromoSection /> */}
-      <BestsellersSection products={products.slice(0, 10)} loading={loading} />
+      <BestsellersSection 
+        products={productsToShow} 
+        loading={bestsellerLoading || allProductsLoading} 
+      />
       <GuidesSection />
       <PromotionalBanners />
       <ServicesSection />
-      <FeaturedSection product={products[0]} loading={loading} />
-      <RecommendationsSection products={products.slice(10, 20)} loading={loading} />
+      <FeaturedSection 
+        product={transformedFeaturedProducts[0]} 
+        loading={featuredLoading} 
+      />
+      <RecommendationsSection 
+        products={transformedAllProducts.slice(0, 20)} 
+        loading={allProductsLoading} 
+      />
       <TechSection />
       <PopularCategories />
       {/* <BlogSection /> */}

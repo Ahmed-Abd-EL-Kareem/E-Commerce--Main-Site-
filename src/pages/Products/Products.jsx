@@ -16,7 +16,14 @@ const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
-  const categorySlug = (params.get("category") || "all").toLowerCase();
+  
+  // Extract category from URL params and ensure it's a string
+  let categoryFromUrl = params.get("category") || "all";
+  if (typeof categoryFromUrl === 'object') {
+    categoryFromUrl = categoryFromUrl.en || categoryFromUrl.ar || 'all';
+  }
+  const categorySlug = categoryFromUrl.toLowerCase();
+  
   const { setSelectedCategory } = useCategory();
   const { t, i18n } = useTranslation();
   const language = i18n.language === "ar" ? "ar" : "en";
@@ -26,6 +33,7 @@ const Products = () => {
   const [priceRange, setPriceRange] = React.useState([0, 35000]);
   const [rating, setRating] = React.useState(0);
   const [brands, setBrands] = React.useState([]);
+  const [viewMode, setViewMode] = useState('grid'); // Add view mode state
 
   // حالة ظهور الفلتر في الشاشات الصغيرة والمتوسطة
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -41,6 +49,19 @@ const Products = () => {
       ? document.documentElement.getAttribute("data-theme") || ""
       : ""
   );
+
+  // Listen for view mode changes from SecondNavbar
+  useEffect(() => {
+    const handleViewModeChange = (event) => {
+      setViewMode(event.detail.viewMode);
+    };
+
+    window.addEventListener('viewModeChanged', handleViewModeChange);
+    return () => {
+      window.removeEventListener('viewModeChanged', handleViewModeChange);
+    };
+  }, []);
+
   useEffect(() => {
     const observer = new MutationObserver(() => {
       setThemeMode(document.documentElement.getAttribute("data-theme") || "");
@@ -101,7 +122,15 @@ const Products = () => {
 
   // بناء رابط الفلترة
   const buildApiUrl = () => {
-    let url = `http://127.0.0.1:3000/api/product?categorySlug=${categorySlug}`;
+    // Ensure categorySlug is a string and handle edge cases
+    let categoryParam = categorySlug;
+    if (typeof categorySlug === 'object') {
+      categoryParam = categorySlug.en || categorySlug.ar || 'all';
+    } else if (!categorySlug || categorySlug === 'undefined' || categorySlug === 'null') {
+      categoryParam = 'all';
+    }
+    
+    let url = `http://127.0.0.1:3000/api/product?categorySlug=${encodeURIComponent(categoryParam)}`;
     if (selectedBrands.length > 0) {
       url += `&brandSlug=${selectedBrands.join(",")}`;
     }
@@ -113,9 +142,20 @@ const Products = () => {
 
   // جلب المنتجات حسب الفلاتر
   const fetchProducts = async () => {
-    const res = await fetch(buildApiUrl());
-    const data = await res.json();
-    return data.data;
+    try {
+      console.log('Fetching products with categorySlug:', categorySlug, 'type:', typeof categorySlug);
+      const url = buildApiUrl();
+      console.log('API URL:', url);
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      return data.data;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return [];
+    }
   };
 
   // جلب المنتجات
@@ -130,9 +170,13 @@ const Products = () => {
     const fetchBrands = async () => {
       try {
         const res = await fetch("http://127.0.0.1:3000/api/brand");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const data = await res.json();
         setBrands(data.data.brands || []);
-      } catch {
+      } catch (error) {
+        console.error('Error fetching brands:', error);
         setBrands([]);
       }
     };
@@ -176,7 +220,16 @@ const Products = () => {
   // تحديث الـ URL عند تغيير الفلاتر
   React.useEffect(() => {
     const urlParams = new URLSearchParams();
-    urlParams.set("category", categorySlug);
+    
+    // Ensure category is a string
+    let categoryParam = categorySlug;
+    if (typeof categorySlug === 'object') {
+      categoryParam = categorySlug.en || categorySlug.ar || 'all';
+    } else if (!categorySlug || categorySlug === 'undefined' || categorySlug === 'null') {
+      categoryParam = 'all';
+    }
+    
+    urlParams.set("category", categoryParam);
     if (selectedBrands.length > 0) {
       urlParams.set("brands", selectedBrands.join(","));
     }
@@ -195,6 +248,7 @@ const Products = () => {
   const brandsToDisplay = showAllBrands
     ? brands
     : brands.slice(0, BRANDS_TO_SHOW);
+
   return (
     <div className="flex gap-8">
       {/* Overlay في الشاشات الصغيرة والمتوسطة */}
@@ -592,7 +646,11 @@ const Products = () => {
           {isLoading ? (
             <Loading />
           ) : (
-            <div className="grid gap-6 p-6 w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+            <div className={`p-6 w-full ${
+              viewMode === 'list' 
+                ? 'space-y-6' // List view: vertical stack with more spacing
+                : 'grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5' // Enhanced grid view with better responsive breakpoints
+            }`}>
               {products?.map((product) => (
                 <ProductCard
                   key={product._id}
@@ -600,6 +658,7 @@ const Products = () => {
                   language={language}
                   t={t}
                   navigate={navigate}
+                  viewMode={viewMode}
                 />
               ))}
             </div>
