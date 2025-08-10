@@ -1,42 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: light --default;
+
+/* Base styles for smooth transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
 }
 
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Light mode scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Comprehensive Theme Variables */
 :root {
-  --bg: #f8fafc;
+  /* Light Theme */
+  --primary-bg: #ffffff;
+  --secondary-bg: #f8fafc;
+  --tertiary-bg: #f1f5f9;
   --card-bg: #ffffff;
-  --text: #1e293b;
-  --text-secondary: #64748b;
-  --accent: #2563eb;
-  --accent-hover: #1e40af;
-  --light-blue: #3b82f6;
-  --dark-blue: #1e3a8a;
-  --navy-blue: #0f172a;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --button-bg: #2563eb;
-  --hero-bg: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-  --primary-blue: #2563eb;
-  --secondary-blue: #3b82f6;
-  --background-light: #f8fafc;
-  /* RecommendationsSection variables */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --card-border: #e2e8f0;
+  --primary-text: #0f172a;
+  --secondary-text: #475569;
+  --accent-text: #2563eb;
+  --success-text: #059669;
+  --warning-text: #d97706;
+  --error-text: #dc2626;
   --border-color: #e2e8f0;
-  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --bg-accent: #eff6ff;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus: #2563eb;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --image-bg: #f8fafc;
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+[data-theme="dark"] {
+  /* Dark Theme */
+  --primary-bg: #0f172a;
+  --secondary-bg: #1e293b;
+  --tertiary-bg: #334155;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --primary-text: #f8fafc;
+  --secondary-text: #94a3b8;
+  --accent-text: #60a5fa;
+  --success-text: #34d399;
+  --warning-text: #fbbf24;
+  --error-text: #f87171;
+  --border-color: #334155;
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --input-focus: #60a5fa;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3),
+    0 8px 10px -6px rgb(0 0 0 / 0.3);
+  --image-bg: #1e293b;
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
 body {
-  background: var(--bg);
-  color: var(--text);
+  background: var(--primary-bg);
+  color: var(--primary-text);
   transition: background 0.3s, color 0.3s;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
 }
 
-body.dark {
+/* Utility Classes */
+.theme-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--primary-text);
+}
+
+.theme-input:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.theme-button-primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+/* دعم الوضع الليلي عبر data-theme="dark" أيضًا */
+[data-theme="dark"] {
   --bg: #0f172a;
   --card-bg: #1e293b;
   --text: #f1f5f9;
@@ -52,7 +154,6 @@ body.dark {
   --primary-blue: #60a5fa;
   --secondary-blue: #93c5fd;
   --background-light: #1e293b;
-  /* RecommendationsSection variables for dark mode */
   --bg-primary: #1e293b;
   --bg-secondary: #0f172a;
   --text-primary: #f1f5f9;
@@ -63,31 +164,52 @@ body.dark {
   --bg-accent: #1e3a8a;
 }
 
-.theme-toggle-btn {
+.theme-button-secondary {
   background: var(--card-bg);
-  color: var(--text);
-  border: 1px solid var(--accent);
-  border-radius: 50px;
-  padding: 0.4em 1.2em;
-  font-size: 1.1em;
-  cursor: pointer;
-  margin-left: 1em;
-  transition: background 0.2s, color 0.2s, border 0.2s;
+  border: 1px solid var(--card-border);
+  color: var(--primary-text);
+  box-shadow: var(--shadow-sm);
 }
 
-.theme-toggle-btn:hover {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.recommendations-section::before {
-  content: 'DARK MODE ACTIVE';
-  color: var(--accent);
-  display: block;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-body.dark .recommendations-section::before {
-  content: 'DARK MODE ACTIVE!';
-  color: var(--light-blue);
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

@@ -40,69 +40,89 @@
     "searchPlaceholder": "Search for products, brands, and more...",
     "cart": "Cart",
     "account": "Account",
-    "login": "Login",
-    "signup": "Sign Up",
     "darkMode": "Dark Mode",
     "language": "Language"
   },
+  "navbar": {
+    "topBanner": "Midseason Sale: 20% Off • Auto Applied at Checkout • Limited Time Only",
+    "login": "Login",
+    "signup": "Sign Up",
+    "cart": "Cart",
+    "searchPlaceholder": "Search for products, brands, and more...",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode"
+  },
   "hero": {
-    "title": "Discover Amazing Products",
-    "subtitle": "Find the best deals on electronics, gadgets, and more",
+    "title": "Discover Premium Electronics",
+    "subtitle": "Explore our curated collection of cutting-edge technology",
     "shopNow": "Shop Now",
-    "learnMore": "Learn More"
+    "learnMore": "Learn More",
+    "noProducts": "Loading Premium Products..."
   },
   "bestsellers": {
-    "title": "Top 10 Bestsellers of This Week",
-    "subtitle": "FEATURED ITEMS",
+    "title": "Bestsellers",
+    "subtitle": "Top 10 Bestsellers of This Week",
     "description": "Looking for the latest and greatest in electronics? Look no further than our Top 10 Bestsellers of the week! Our expertly curated selection features the hottest gadgets and devices flying off the shelves.",
+    "viewAll": "View All",
+    "addToCart": "Add to Cart",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
     "shopMore": "Shop More",
     "sale": "Sale",
     "stockBrand": "STOCK/BRAND"
   },
   "recommendations": {
     "title": "Recommended for You",
+    "subtitle": "Based on your preferences",
     "new": "NEW ARRIVALS",
+    "viewAllProducts": "View All Products",
     "categories": {
       "all": "All",
+      "electronics": "Electronics",
       "phones": "Phones",
-      "smartWatches": "Smart Watches",
-      "gaming": "Gaming",
       "laptops": "Laptops",
-      "speakers": "Speakers"
-    },
-    "viewAllProducts": "View All Products"
-  },
-  "featured": {
-    "inStockNow": "IN STOCK NOW",
-    "description": "Elevate your audio experience with rich and powerful sound, seamlessly blending style and substance."
-  },
-  "services": {
-    "freeShipping": {
-      "title": "Free Shipping",
-      "description": "Free shipping on all orders over $50"
-    },
-    "support": {
-      "title": "24/7 Support",
-      "description": "Get help when you need it"
-    },
-    "returns": {
-      "title": "Easy Returns",
-      "description": "30-day return policy"
-    },
-    "warranty": {
-      "title": "Warranty",
-      "description": "1-year warranty on all products"
+      "accessories": "Accessories"
     }
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Checkout",
+    "continueShopping": "Continue Shopping",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "price": "Price",
+    "addedToCart": "Added to cart successfully",
+    "addToCart": "Add to Cart",
+    "clearCart": "Clear Cart",
+    "apply": "Apply",
+    "free": "FREE",
+    "promoPlaceholder": "Enter promo code"
+  },
+  "product": {
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "outOfStock": "Out of Stock",
+    "inStock": "In Stock",
+    "reviews": "Reviews",
+    "description": "Description",
+    "specifications": {
+      "warranty": "Warranty"
+    },
+    "relatedProducts": "Related Products",
+    "share": "Share",
+    "favorite": "Favorite",
+    "unfavorite": "Remove from Favorites"
   },
   "guides": {
     "title": "Guides for Everything You Need",
     "subtitle": "HOW TO",
     "readMore": "Read More",
     "items": {
-      "choosingHeadphones": {
-        "title": "How to Choose the Perfect Headphones",
-        "description": "Complete guide to selecting headphones that match your lifestyle and preferences."
-      },
       "gamingSetup": {
         "title": "Ultimate Gaming Setup Guide",
         "description": "Build the perfect gaming environment with our expert recommendations."
@@ -110,12 +130,12 @@
       "smartHome": {
         "title": "Smart Home Integration",
         "description": "Connect and automate your devices for a seamless smart home experience."
+      },
+      "choosingHeadphones": {
+        "title": "How to Choose the Perfect Headphones",
+        "description": "Complete guide to selecting headphones that match your lifestyle and preferences."
       }
     }
-  },
-  "categories": {
-    "title": "Popular Categories",
-    "exploreAll": "Explore All Categories"
   },
   "promos": {
     "gaming": {
@@ -128,49 +148,140 @@
       "description": "Swap your style on the go with our smartwatches – change your look in seconds with customizable watch faces and bands, perfect for any occasion."
     }
   },
-  "cart": {
-    "title": "Shopping Cart",
-    "empty": "Your cart is empty",
-    "continueShopping": "Continue Shopping",
-    "product": "Product",
-    "price": "Price",
-    "quantity": "Quantity",
+  "services": {
+    "freeShipping": {
+      "title": "Free Shipping",
+      "description": "Free shipping on all orders over $50"
+    },
+    "returns": {
+      "title": "Easy Returns",
+      "description": "30-day return policy"
+    },
+    "support": {
+      "title": "24/7 Support",
+      "description": "Get help when you need it"
+    },
+    "warranty": {
+      "title": "Warranty",
+      "description": "1-year warranty on all products"
+    }
+  },
+  "categories": {
+    "title": "Popular Categories",
+    "exploreAll": "Explore All Categories"
+  },
+  "footer": {
+    "company": "VT TECH Digital Solutions",
+    "description": "Your trusted source for premium electronics and digital solutions",
+    "quickLinks": {
+      "title": "Quick Links",
+      "home": "Home",
+      "products": "Products",
+      "categories": "Categories",
+      "about": "About",
+      "contact": "Contact"
+    },
+    "customerService": {
+      "title": "Customer Service",
+      "support": "Support",
+      "returns": "Returns",
+      "shipping": "Shipping",
+      "faq": "FAQ"
+    },
+    "contact": {
+      "title": "Contact Info",
+      "email": "info@vttech.com",
+      "phone": "+1 (555) 123-4567",
+      "address": "123 Tech Street, Digital City, DC 12345"
+    },
+    "newsletter": "Newsletter",
+    "newsletterPlaceholder": "Enter your email",
+    "subscribe": "Subscribe",
+    "socialMedia": "Follow Us",
+    "paymentMethods": "We Accept",
+    "legal": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    },
+    "copyright": "© 2024 VT TECH Digital Solutions. All rights reserved."
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your account settings and preferences",
+    "personalInfo": "Personal Information",
+    "address": "Address Information",
+    "preferences": "Preferences",
+    "security": "Security Settings",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "dateOfBirth": "Date of Birth",
+    "gender": "Gender",
+    "selectGender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "street": "Street Address",
+    "city": "City",
+    "state": "State/Province",
+    "zipCode": "ZIP/Postal Code",
+    "country": "Country",
+    "notifications": "Notifications",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive email notifications for orders and updates",
+    "newsletter": "Newsletter",
+    "newsletterDesc": "Subscribe to our newsletter for updates and offers",
+    "marketing": "Marketing Communications",
+    "marketingDesc": "Receive promotional emails and offers",
+    "language": "Language",
+    "theme": "Theme",
+    "lightTheme": "Light Theme",
+    "darkTheme": "Dark Theme",
+    "autoTheme": "Auto (System)",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Update your password to keep your account secure",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your account and all associated data",
+    "editProfile": "Edit Profile",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "logout": "Logout",
+    "saving": "Saving...",
+    "saveSuccess": "Profile updated successfully!",
+    "saveError": "Failed to update profile. Please try again.",
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email address",
+    "phoneInvalid": "Please enter a valid phone number",
+    "cityRequired": "City is required when street is provided",
+    "countryRequired": "Country is required when city is provided",
+    "orders": "Orders",
+    "orderId": "Order ID",
+    "status": "Status",
     "total": "Total",
-    "subtotal": "Subtotal",
-    "shipping": "Shipping",
-    "tax": "Tax",
-    "grandTotal": "Grand Total",
-    "checkout": "Proceed to Checkout",
-    "addToCart": "Add to Cart",
-    "inCart": "In Cart",
-    "removeFromCart": "Remove from Cart",
-    "clearCart": "Clear Cart",
-    "updateCart": "Update Cart",
-    "promoCode": "Promo Code",
-    "applyPromo": "Apply",
-    "itemsInCart": "{{count}} item in cart",
-    "itemsInCart_plural": "{{count}} items in cart",
-    "addedToCart": "{{product}} added to cart!",
-    "removedFromCart": "{{product}} removed from cart",
-    "cartCleared": "Cart cleared successfully",
-    "promoApplied": "Promo code applied! {{discount}}% discount",
-    "invalidPromo": "Invalid promo code",
-    "free": "Free",
-    "color": "Color"
+    "shippingAddress": "Shipping Address",
+    "payment": "Payment",
+    "paymentMethod": "Payment Method",
+    "paymentStatus": "Payment Status",
+    "items": "Items",
+    "product": "Product",
+    "quantity": "Quantity",
+    "price": "Price",
+    "orderedAt": "Ordered At",
+    "noOrders": "No orders found",
+    "noOrdersDesc": "You haven't placed any orders yet.",
+    "deletedProduct": "Deleted Product",
+    "cancelOrder": "Cancel Order",
+    "cancelSuccess": "Order cancelled successfully",
+    "cancelled": "Cancelled"
   },
   "productDetails": {
-    "loading": "Loading product details...",
-    "notFound": "Product Not Found",
-    "notFoundDescription": "The product you're looking for doesn't exist.",
-    "inStock": "{{count}} in stock",
-    "outOfStock": "Out of stock",
-    "youSave": "You save {{amount}} ({{percentage}}%)",
-    "quantity": "Quantity:",
-    "addToCart": "Add to Cart",
     "buyNow": "Buy Now",
     "features": {
+      "returns": "Easy Returns",
       "freeShipping": "Free Shipping",
-      "returns": "30-Day Returns",
       "securePayment": "Secure Payment"
     },
     "tabs": {
@@ -178,126 +289,27 @@
       "specifications": "Specifications",
       "reviews": "Reviews"
     },
-    "description": {
-      "title": "Product Description",
-      "keyFeatures": "Key Features:",
-      "features": [
-        "High-quality materials and construction",
-        "Advanced technology for optimal performance",
-        "User-friendly design and interface",
-        "Durable and long-lasting",
-        "Backed by manufacturer warranty"
-      ]
-    },
-    "specifications": {
-      "title": "Technical Specifications",
-      "brand": "Brand:",
-      "category": "Category:",
-      "weight": "Weight:",
-      "dimensions": "Dimensions:",
-      "warranty": "Warranty:",
-      "returnPolicy": "Return Policy:",
-      "na": "N/A",
-      "defaultWarranty": "1 Year",
-      "defaultReturn": "30 days return policy"
-    },
+    "relatedProducts": "Related Products",
+    "inCartEn": "Added to cart!",
+    "addToCartSuccessEn": "Product added to cart successfully!",
+    "inStock": "In Stock ({{count}})",
+    "outOfStock": "Out of Stock",
     "reviews": {
-      "title": "Customer Reviews",
-      "basedOn": "Based on {{count}} review",
-      "basedOn_plural": "Based on {{count}} reviews",
-      "noReviews": "No reviews yet. Be the first to review this product!",
-      "writeReview": "Write a Review"
-    },
-    "relatedProducts": "Related Products"
+      "basedOn": "Based on {{count}} reviews"
+    }
   },
-  "search": {
-    "title": "Search Results",
-    "searchFor": "Search results for \"{{query}}\"",
-    "noResults": "No results found",
-    "noResultsDescription": "No results found for \"{{query}}\"",
-    "suggestions": "Search Suggestions:",
-    "trySearching": "Try searching for:",
-    "searching": "Searching...",
-    "results": "Search Results",
-    "viewDetails": "View Details",
-    "explore": "Explore",
-    "sortBy": "Sort by:",
-    "filterBy": "Filter by:",
-    "priceRange": "Price Range:",
-    "categories": "Categories:",
-    "brands": "Brands:",
-    "rating": "Rating:",
-    "sortOptions": {
-      "relevance": "Relevance",
-      "priceLow": "Price: Low to High",
-      "priceHigh": "Price: High to Low",
-      "name": "Name",
-      "rating": "Rating"
-    },
-    "filterOptions": {
-      "all": "All",
-      "product": "Products",
-      "category": "Categories",
-      "guide": "Guides"
-    },
-    "resultTypes": {
-      "product": "product",
-      "category": "category",
-      "guide": "guide"
-    },
-    "showingResults": "Showing {{count}} result",
-    "showingResults_plural": "Showing {{count}} results",
-    "viewAllResults": "View all {{count}} results"
-  },
-  "footer": {
-    "company": {
-      "title": "Company",
-      "about": "Your trusted partner for premium electronics and cutting-edge technology.",
-      "careers": "Careers",
-      "press": "Press",
-      "blog": "Blog"
-    },
-    "support": {
-      "title": "Support",
-      "help": "Help Center",
-      "contact": "Contact Us",
-      "shipping": "Shipping Info",
-      "returns": "Returns"
-    },
-    "legal": {
-      "title": "Legal",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy"
-    },
-    "social": {
-      "title": "Follow Us",
-      "facebook": "Facebook",
-      "twitter": "Twitter",
-      "instagram": "Instagram",
-      "youtube": "YouTube"
-    },
-    "newsletter": {
-      "title": "Newsletter",
-      "description": "Subscribe to get updates on new products and offers",
-      "placeholder": "Enter your email",
-      "subscribe": "Subscribe"
-    },
-    "copyright": "© {{year}} Alamia. All rights reserved.",
-    "paymentMethods": "We Accept"
-  },
-  "errors": {
-    "general": "Something went wrong. Please try again.",
-    "network": "Network error. Please check your connection.",
-    "notFound": "Page not found",
-    "unauthorized": "You are not authorized to access this page",
-    "serverError": "Server error. Please try again later.",
-    "validationError": "Please check your input and try again"
-  },
-  "success": {
-    "general": "Operation completed successfully",
-    "saved": "Changes saved successfully",
-    "deleted": "Item deleted successfully",
-    "updated": "Item updated successfully"
+  "auth": {
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "tryDemo": "Try Demo",
+    "or": "or",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "welcomeBack": "Welcome back!",
+    "signInToContinue": "Sign in to continue",
+    "email": "Email",
+    "password": "Password"
   }
-} 
+}

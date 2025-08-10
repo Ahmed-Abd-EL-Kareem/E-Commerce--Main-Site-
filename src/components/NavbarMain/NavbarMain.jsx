@@ -1,23 +1,32 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import './NavbarMain.css';
-import { useTheme } from '../../context/ThemeContext';
-import { useCart } from '../../context/CartContext';
-import { useSearch } from '../../context/SearchContext';
-import SearchDropdown from '../SearchDropdown/SearchDropdown';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useTheme } from "../../context/ThemeContext";
+import { useCart } from "../../context/CartContext";
+import { useSearch } from "../../context/SearchContext";
+import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavoritesContext";
+import { useLanguage, getDirectionalClass } from "../../utils/languageUtils";
+import SearchDropdown from "../SearchDropdown/SearchDropdown";
+import logoImage from "../../assets/images/logoo.png";
 
 const NavbarMain = () => {
   const { t, i18n } = useTranslation();
+  const { language, isRTL } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { getCartCount } = useCart();
-  const { searchQuery, setSearchQuery, performSearch } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
+  const { user, logout, isAuthenticated } = useAuth();
+  const { getFavoritesCount } = useFavorites();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
-  const [isMobileSearchDropdownOpen, setIsMobileSearchDropdownOpen] = useState(false);
+  const [isMobileSearchDropdownOpen, setIsMobileSearchDropdownOpen] =
+    useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const searchRef = useRef(null);
   const mobileSearchRef = useRef(null);
+  const userDropdownRef = useRef(null);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -31,111 +40,64 @@ const NavbarMain = () => {
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
 
   // Close menu on escape key
   useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         closeMobileMenu();
       }
     };
-    
+
     if (isMobileMenuOpen) {
-      document.addEventListener('keydown', handleEscape);
+      document.addEventListener("keydown", handleEscape);
     }
-    
+
     return () => {
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isMobileMenuOpen]);
 
-  const handleThemeToggle = () => {
-    toggleTheme();
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    document.documentElement.setAttribute("lang", lng);
+    document.documentElement.setAttribute("dir", lng === "ar" ? "rtl" : "ltr");
+    closeMobileMenu();
   };
 
-  const handleLanguageToggle = () => {
-    const newLanguage = i18n.language === 'en' ? 'ar' : 'en';
-    i18n.changeLanguage(newLanguage);
-  };
-
-  // Search functionality
-  const handleSearchInputChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (query.trim()) {
-      setIsSearchDropdownOpen(true);
-    } else {
-      setIsSearchDropdownOpen(false);
-    }
-  };
-
-  const handleSearchSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setIsSearchDropdownOpen(false);
-    }
-  };
-
-  const handleMobileSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (query.trim()) {
-      setIsMobileSearchDropdownOpen(true);
-    } else {
       setIsMobileSearchDropdownOpen(false);
-    }
-  };
-
-  const handleMobileSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      closeMobileMenu();
+    } else {
+      navigate("/search");
+      setIsSearchDropdownOpen(false);
       setIsMobileSearchDropdownOpen(false);
       closeMobileMenu();
     }
   };
 
-  const handleSearchFocus = () => {
-    setIsSearchDropdownOpen(true);
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setIsSearchDropdownOpen(value.length > 0);
   };
 
-  const handleSearchBlur = (e) => {
-    // Delay closing to allow clicking on dropdown items
-    setTimeout(() => {
-      if (!searchRef.current?.contains(document.activeElement)) {
-        setIsSearchDropdownOpen(false);
-      }
-    }, 200);
-  };
-
-  const handleMobileSearchFocus = () => {
-    setIsMobileSearchDropdownOpen(true);
-  };
-
-  const handleMobileSearchBlur = (e) => {
-    // Delay closing to allow clicking on dropdown items
-    setTimeout(() => {
-      if (!mobileSearchRef.current?.contains(document.activeElement)) {
-        setIsMobileSearchDropdownOpen(false);
-      }
-    }, 200);
-  };
-
-  const closeSearchDropdown = () => {
-    setIsSearchDropdownOpen(false);
-  };
-
-  const closeMobileSearchDropdown = () => {
-    setIsMobileSearchDropdownOpen(false);
+  const handleMobileSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setIsMobileSearchDropdownOpen(value.length > 0);
   };
 
   // Close search dropdown when clicking outside
@@ -144,272 +106,751 @@ const NavbarMain = () => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchDropdownOpen(false);
       }
-      if (mobileSearchRef.current && !mobileSearchRef.current.contains(event.target)) {
+      if (
+        mobileSearchRef.current &&
+        !mobileSearchRef.current.contains(event.target)
+      ) {
         setIsMobileSearchDropdownOpen(false);
+      }
+      if (
+        userDropdownRef.current &&
+        !userDropdownRef.current.contains(event.target)
+      ) {
+        setIsUserDropdownOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const cartCount = getCartCount();
+  const favoritesCount = getFavoritesCount();
 
   return (
     <>
       {/* Top Banner */}
-      <div className="top-banner">
-        <p>{t('header.topBanner')}</p>
+      <div
+        className="text-center py-3 px-4 text-sm font-semibold tracking-wide"
+        style={{
+          background: "var(--gradient-primary)",
+          color: "white",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <p className="m-0 drop-shadow-sm">{t("navbar.topBanner")}</p>
       </div>
 
       {/* Main Navbar */}
-      <nav className="main-navbar">
-        <div className="navbar-container">
-          {/* Mobile Menu Button */}
-          <button 
-            className="mobile-menu-toggle"
-            onClick={toggleMobileMenu}
-            aria-label="Toggle mobile menu"
+      <nav
+        className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-700 transition-all duration-300 main-navbar"
+        style={{
+          background: "var(--navbar-bg)",
+          backdropFilter: "blur(10px)",
+          borderColor: "var(--border-color)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4">
+          <div
+            className={`flex items-center justify-between h-16 ${getDirectionalClass(
+              "",
+              isRTL,
+              "flex-row-reverse",
+              "flex-row"
+            )}`}
           >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+            {/* Logo */}
+            <div className="flex items-center navbar-logo">
+              <button
+                onClick={() => navigate("/")}
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+                style={{ color: "var(--primary-text)" }}
+              >
+                <img
+                  src={logoImage}
+                  alt="VT TECH Digital Solutions"
+                  className="h-20 w-auto object-contain"
+                />
+                {/* <span className="text-xl font-bold hidden sm:block ml-2">
+                  {language === 'ar' ? 'العالمية' : 'Al Alamya'}
+                </span> */}
+              </button>
+            </div>
 
-          {/* Logo Comparison */}
-          <div className="navbar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <img src="/logo1.png" alt="Vision Tech" style={{ height: '45px', width: 'auto', objectFit: 'contain' }} />
-            <img src="/logo2.png" alt="Vision Tech" style={{ height: '45px', width: 'auto', objectFit: 'contain' }} />
-          </div>
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-8">
+              <a
+                href="/"
+                className="no-underline font-semibold text-base transition-all duration-300 py-3 relative hover:-translate-y-0.5 px-2 rounded-lg hover:bg-opacity-10"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--accent-text)";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                  e.target.style.color = "var(--primary-text)";
+                }}
+              >
+                {t("navigation.home")}
+              </a>
+              <a
+                href="/products"
+                className="no-underline font-semibold text-base transition-all duration-300 py-3 relative hover:-translate-y-0.5 px-2 rounded-lg hover:bg-opacity-10"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--accent-text)";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                  e.target.style.color = "var(--primary-text)";
+                }}
+              >
+                {t("navigation.categories")}
+              </a>
+              <a
+                href="/about"
+                className="no-underline font-semibold text-base transition-all duration-300 py-3 relative hover:-translate-y-0.5 px-2 rounded-lg hover:bg-opacity-10"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--accent-text)";
+                  e.target.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                  e.target.style.color = "var(--primary-text)";
+                }}
+              >
+                {t("navigation.about")}
+              </a>
+            </div>
 
-          {/* Search Bar */}
-          <div className="search-container" ref={searchRef}>
-            <form onSubmit={handleSearchSubmit}>
-              <input 
-                type="text" 
-                placeholder={t('header.searchPlaceholder')}
-                className="search-input"
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                onFocus={handleSearchFocus}
-                onBlur={handleSearchBlur}
-              />
-              <button type="submit" className="search-button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
+            {/* Desktop Search */}
+            <div
+              className="hidden lg:flex flex-1 max-w-md mx-4 relative"
+              ref={searchRef}
+            >
+              <form onSubmit={handleSearch} className="w-full relative group">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={t("navbar.searchPlaceholder")}
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    style={{
+                      background: "var(--input-bg)",
+                      color: "var(--primary-text)",
+                      borderColor: "var(--border-color)",
+                    }}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {isSearchDropdownOpen && (
+                  <SearchDropdown
+                    query={searchQuery}
+                    onClose={() => setIsSearchDropdownOpen(false)}
+                  />
+                )}
+              </form>
+            </div>
+
+            {/* Desktop Actions */}
+            <div
+              className={`hidden lg:flex items-center space-x-4 ${getDirectionalClass(
+                "",
+                isRTL,
+                "flex-row-reverse",
+                "flex-row"
+              )}`}
+            >
+              {/* Language Switcher */}
+              <button
+                onClick={() => changeLanguage(language === "en" ? "ar" : "en")}
+                className="px-3 py-2 rounded-lg transition-all duration-200 hover:bg-opacity-10 font-medium"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--tertiary-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
+                aria-label="Switch language"
+              >
+                <span className="text-sm font-medium">
+                  {language === "en" ? "العربية" : "EN"}
+                </span>
+              </button>
+
+              {/* Favorites Button */}
+              <button
+                onClick={() => navigate("/profile?tab=favorites")}
+                className="relative bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-110"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--tertiary-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
+                aria-label="Favorites"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {favoritesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                    {favoritesCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Cart Button */}
+              <button
+                onClick={() => navigate("/cart")}
+                className="relative bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-110"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--tertiary-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
+                aria-label="Cart"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-110"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--tertiary-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
+                aria-label={
+                  theme === "dark"
+                    ? "Switch to light mode"
+                    : "Switch to dark mode"
+                }
+              >
+                {theme === "dark" ? (
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+
+              {/* User Menu */}
+              {isAuthenticated ? (
+                <div className="relative" ref={userDropdownRef}>
+                  <button
+                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                    className="flex items-center space-x-2 p-2 rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                    style={{
+                      color: "var(--primary-text)",
+                      background: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "var(--tertiary-bg)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "transparent";
+                    }}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                      {user?.name?.charAt(0) || "U"}
+                    </div>
+                    <span className="hidden md:block text-sm font-medium">
+                      {user?.name || "User"}
+                    </span>
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isUserDropdownOpen ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+
+                  {isUserDropdownOpen && (
+                    <div
+                      className={`absolute ${
+                        isRTL ? "left-0" : "right-0"
+                      } mt-2 w-48 rounded-lg shadow-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 z-[9999] user-dropdown`}
+                    >
+                      <div className="py-2">
+                        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                          <p className="text-sm font-medium text-slate-900 dark:text-white">
+                            {user?.name || "User"}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {user?.email || "user@example.com"}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            navigate("/profile");
+                            setIsUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 user-dropdown-item"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                          {language === "ar" ? "الملف الشخصي" : "Profile"}
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate("/profile?tab=favorites");
+                            setIsUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2 user-dropdown-item"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
+                          {language === "ar" ? "المفضلة" : "Favorites"}
+                          {favoritesCount > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                              {favoritesCount}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsUserDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2 user-dropdown-item"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                          </svg>
+                          {language === "ar" ? "تسجيل الخروج" : "Logout"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div
+                  className={`flex items-center space-x-2 ${getDirectionalClass(
+                    "",
+                    isRTL,
+                    "flex-row-reverse",
+                    "flex-row"
+                  )}`}
+                >
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                    style={{
+                      color: "var(--primary-text)",
+                      background: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "var(--tertiary-bg)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "transparent";
+                    }}
+                  >
+                    {t("navbar.login")}
+                  </button>
+                  <button
+                    onClick={() => navigate("/signup")}
+                    className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {t("navbar.signup")}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                aria-label="Toggle mobile menu"
+              >
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
-            </form>
-            <SearchDropdown 
-              isOpen={isSearchDropdownOpen} 
-              onClose={closeSearchDropdown}
-            />
-          </div>
-
-          {/* Desktop Actions */}
-          <div className="desktop-actions">
-            <a href="/catalog">{t('navigation.catalog')}</a>
-            <a href="/journal">{t('navigation.journal')}</a>
-            <a href="/about">{t('navigation.about')}</a>
-            
-            <div className="theme-toggle">
-              <span>{t('header.darkMode')}</span>
-              <button 
-                className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`}
-                onClick={handleThemeToggle}
-                aria-label="Toggle dark mode"
-              >
-                <span className="toggle-slider"></span>
-              </button>
             </div>
-
-            <div className="language-switcher">
-              <span 
-                className={`lang-option ${i18n.language === 'en' ? 'active' : ''}`}
-                onClick={() => i18n.changeLanguage('en')}
-                style={{
-                  color: i18n.language === 'en' ? '#ff7d1a' : '#666',
-                  cursor: 'pointer',
-                  padding: '10px',
-                  fontWeight: i18n.language === 'en' ? '600' : '500',
-                  fontSize: '0.875rem',
-                  userSelect: 'none'
-                }}
-                onMouseEnter={(e) => e.target.style.color = '#ff7d1a'}
-                onMouseLeave={(e) => e.target.style.color = i18n.language === 'en' ? '#ff7d1a' : '#666'}
-              >
-                EN
-              </span>
-              <span className="lang-separator" style={{ color: '#d1d5db', margin: '0 0.5rem' }}>|</span>
-              <span 
-                className={`lang-option ${i18n.language === 'ar' ? 'active' : ''}`}
-                onClick={() => i18n.changeLanguage('ar')}
-                style={{
-                  color: i18n.language === 'ar' ? '#ff7d1a' : '#666',
-                  cursor: 'pointer',
-                  padding: '10px',
-                  fontWeight: i18n.language === 'ar' ? '600' : '500',
-                  fontSize: '0.875rem',
-                  userSelect: 'none'
-                }}
-                onMouseEnter={(e) => e.target.style.color = '#ff7d1a'}
-                onMouseLeave={(e) => e.target.style.color = i18n.language === 'ar' ? '#ff7d1a' : '#666'}
-              >
-                AR
-              </span>
-            </div>
-
-            <button className="cart-button" onClick={() => navigate('/cart')}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z"/>
-                <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z"/>
-                <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6"/>
-              </svg>
-              <span className="cart-count" data-count={getCartCount() || 5}>{getCartCount() || 5}</span>
-            </button>
-
-            <button className="user-button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </button>
           </div>
         </div>
-      </nav>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="mobile-overlay" onClick={closeMobileMenu}></div>
-      )}
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden">
+            <div
+              className="px-2 pt-2 pb-3 space-y-1 border-t"
+              style={{
+                background: "var(--card-bg)",
+                color: "var(--primary-text)",
+                borderColor: "var(--card-border)",
+              }}
+            >
+              {/* Mobile Search */}
+              <div className="relative mb-4" ref={mobileSearchRef}>
+                <form onSubmit={handleSearch} className="relative">
+                  <input
+                    type="text"
+                    placeholder={t("navbar.searchPlaceholder")}
+                    value={searchQuery}
+                    onChange={handleMobileSearchInputChange}
+                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style={{
+                      background: "var(--input-bg)",
+                      color: "var(--primary-text)",
+                      borderColor: "var(--input-border)",
+                    }}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5 text-slate-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </form>
+                {isMobileSearchDropdownOpen && (
+                  <SearchDropdown
+                    query={searchQuery}
+                    onClose={() => setIsMobileSearchDropdownOpen(false)}
+                  />
+                )}
+              </div>
 
-      {/* Mobile Menu */}
-      <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
-        <div className="mobile-menu-header">
-          <div 
-            className="mobile-logo" 
-            onClick={() => { navigate('/'); closeMobileMenu(); }}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-          >
-            <img src="/logo1.png" alt="Vision Tech" style={{ height: '35px', width: 'auto', objectFit: 'contain' }} />
-            <img src="/logo2.png" alt="Vision Tech" style={{ height: '35px', width: 'auto', objectFit: 'contain' }} />
-          </div>
-          <button 
-            className="mobile-close-button"
-            onClick={closeMobileMenu}
-            aria-label="Close menu"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
+              {/* Mobile Favorites & Cart (Enhanced Location) */}
+              <div className="flex items-center gap-6 mb-2 justify-center">
+                {/* Favorites Button */}
+                <button
+                  onClick={() => {
+                    navigate("/profile?tab=favorites");
+                    closeMobileMenu();
+                  }}
+                  className="relative bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-110"
+                  style={{
+                    color: "var(--primary-text)",
+                    background: "transparent",
+                  }}
+                  aria-label="Favorites"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                  {favoritesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                      {favoritesCount}
+                    </span>
+                  )}
+                </button>
+                {/* Cart Button */}
+                <button
+                  onClick={() => {
+                    navigate("/cart");
+                    closeMobileMenu();
+                  }}
+                  className="relative bg-transparent border-none cursor-pointer p-2 rounded-lg transition-all duration-200 flex items-center justify-center hover:scale-110"
+                  style={{
+                    color: "var(--primary-text)",
+                    background: "transparent",
+                  }}
+                  aria-label="Cart"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </div>
 
-        <div className="mobile-menu-content">
-          {/* Mobile Search */}
-          <div className="mobile-search" ref={mobileSearchRef}>
-            <form onSubmit={handleMobileSearchSubmit}>
-              <input 
-                type="text" 
-                placeholder={t('header.searchPlaceholder')}
-                value={searchQuery}
-                onChange={handleMobileSearchChange}
-                onFocus={handleMobileSearchFocus}
-                onBlur={handleMobileSearchBlur}
-              />
-              <button type="submit">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="M21 21l-4.35-4.35"/>
-                </svg>
-              </button>
-            </form>
-            <SearchDropdown 
-              isOpen={isMobileSearchDropdownOpen} 
-              onClose={closeMobileSearchDropdown}
-            />
-          </div>
-
-          {/* Mobile Navigation Links */}
-          <div className="mobile-nav-section">
-            <h3>Shop</h3>
-            <a href="/phones" onClick={closeMobileMenu}>{t('navigation.phones')}</a>
-            <a href="/laptops" onClick={closeMobileMenu}>{t('navigation.laptops')}</a>
-            <a href="/headphones" onClick={closeMobileMenu}>{t('navigation.headphones')}</a>
-            <a href="/speakers" onClick={closeMobileMenu}>{t('navigation.speakers')}</a>
-            <a href="/smartwatches" onClick={closeMobileMenu}>{t('navigation.smartwatches')}</a>
-            <a href="/gaming" onClick={closeMobileMenu}>{t('navigation.gaming')}</a>
-            <a href="/features" onClick={closeMobileMenu}>{t('navigation.features')}</a>
-          </div>
-
-          <div className="mobile-nav-section">
-            <h3>Explore</h3>
-            <a href="/catalog" onClick={closeMobileMenu}>{t('navigation.catalog')}</a>
-            <a href="/journal" onClick={closeMobileMenu}>{t('navigation.journal')}</a>
-            <a href="/about" onClick={closeMobileMenu}>{t('navigation.about')}</a>
-          </div>
-
-          {/* Mobile Settings */}
-          <div className="mobile-settings">
-            <div className="mobile-theme-toggle">
-              <span>{t('header.darkMode')}</span>
-              <button 
-                className={`toggle-switch ${theme === 'dark' ? 'active' : ''}`}
-                onClick={handleThemeToggle}
+              {/* Mobile Navigation Links */}
+              <a
+                href="/"
+                className="block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onClick={closeMobileMenu}
               >
-                <span className="toggle-slider"></span>
-              </button>
-            </div>
+                {t("navigation.home")}
+              </a>
+              <a
+                href="/products"
+                className="block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onClick={closeMobileMenu}
+              >
+                {t("navigation.categories")}
+              </a>
+              <a
+                href="/about"
+                className="block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                style={{
+                  color: "var(--primary-text)",
+                  background: "transparent",
+                }}
+                onClick={closeMobileMenu}
+              >
+                {t("navigation.about")}
+              </a>
 
-            <div className="mobile-language">
-              <span>{t('header.language')}</span>
-              <div className="mobile-language-switcher">
-                <span 
-                  className={`mobile-lang-option ${i18n.language === 'en' ? 'active' : ''}`}
-                  onClick={() => i18n.changeLanguage('en')}
+              {/* Mobile Actions */}
+              <div
+                className="pt-4 pb-3 border-t"
+                style={{ borderColor: "var(--card-border)" }}
+              >
+                <div
+                  className={`flex items-center justify-between ${getDirectionalClass(
+                    "",
+                    isRTL,
+                    "flex-row-reverse",
+                    "flex-row"
+                  )}`}
                 >
-                  EN
-                </span>
-                <span className="mobile-lang-separator">|</span>
-                <span 
-                  className={`mobile-lang-option ${i18n.language === 'ar' ? 'active' : ''}`}
-                  onClick={() => i18n.changeLanguage('ar')}
-                >
-                  AR
-                </span>
+                  <button
+                    onClick={() =>
+                      changeLanguage(language === "en" ? "ar" : "en")
+                    }
+                    className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                    style={{
+                      color: "var(--primary-text)",
+                      background: "transparent",
+                    }}
+                  >
+                    {language === "en" ? "العربية" : "EN"}
+                  </button>
+                  <button
+                    onClick={toggleTheme}
+                    className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                    style={{
+                      color: "var(--primary-text)",
+                      background: "transparent",
+                    }}
+                  >
+                    {theme === "dark"
+                      ? t("navbar.lightMode")
+                      : t("navbar.darkMode")}
+                  </button>
+                </div>
+
+                {isAuthenticated ? (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        navigate("/profile");
+                        closeMobileMenu();
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                      style={{
+                        color: "var(--primary-text)",
+                        background: "transparent",
+                      }}
+                    >
+                      {language === "ar" ? "الملف الشخصي" : "Profile"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        logout();
+                        closeMobileMenu();
+                      }}
+                      className="block w-full text-left px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                      style={{
+                        color: "var(--primary-text)",
+                        background: "transparent",
+                      }}
+                    >
+                      {language === "ar" ? "تسجيل الخروج" : "Logout"}
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    className={`mt-4 flex space-x-2 ${getDirectionalClass(
+                      "",
+                      isRTL,
+                      "flex-row-reverse",
+                      "flex-row"
+                    )}`}
+                  >
+                    <button
+                      onClick={() => {
+                        navigate("/login");
+                        closeMobileMenu();
+                      }}
+                      className="flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-opacity-10"
+                      style={{
+                        color: "var(--primary-text)",
+                        background: "transparent",
+                      }}
+                    >
+                      {t("navbar.login")}
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/signup");
+                        closeMobileMenu();
+                      }}
+                      className="flex-1 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {t("navbar.signup")}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Mobile Actions */}
-          <div className="mobile-actions">
-            <button className="mobile-cart" onClick={() => { navigate('/cart'); closeMobileMenu(); }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M9 22C9.55228 22 10 21.5523 10 21C10 20.4477 9.55228 20 9 20C8.44772 20 8 20.4477 8 21C8 21.5523 8.44772 22 9 22Z"/>
-                <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z"/>
-                <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6"/>
-              </svg>
-              <span>{t('header.cart')} <span className="mobile-cart-count">({getCartCount()})</span></span>
-            </button>
-
-            <button className="mobile-account" onClick={closeMobileMenu}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span>My Account</span>
-            </button>
-          </div>
-
-          {/* Contact Info */}
-          <div className="mobile-contact">
-            <p>Need help? Call us</p>
-            <a href="tel:+84250088833">+84 2500 888 33</a>
-          </div>
-        </div>
-      </div>
+        )}
+      </nav>
     </>
   );
 };

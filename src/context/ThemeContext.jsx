@@ -1,44 +1,87 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 
-export const ThemeContext = createContext();
+const ThemeContext = createContext();
+const THEME_KEY = "theme-preference";
+
+function getInitialTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "dark" || stored === "light") return stored;
+  } catch {
+    // تجاهل أي خطأ في localStorage
+  }
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+  return "light";
+}
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    // Initialize from localStorage or default to 'light'
-    return localStorage.getItem('theme') || 'light';
-  });
-
-  const toggleTheme = () => {
-    setTheme(prev => {
-      const newTheme = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('theme', newTheme);
-      return newTheme;
-    });
-  };
+  const [theme, setTheme] = useState(getInitialTheme);
 
   useEffect(() => {
-    // Set data-theme attribute on document element
-    document.documentElement.setAttribute('data-theme', theme);
-    
-    // Also maintain the body class for compatibility with existing CSS
-    if (theme === 'dark') {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
+    console.log("Theme changed:", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    // إزالة كلاس dark دومًا أولاً
+    document.documentElement.classList.remove("dark");
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // تجاهل أي خطأ في localStorage
     }
   }, [theme]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e) => {
+      if (!localStorage.getItem(THEME_KEY)) {
+        setTheme(e.matches ? "dark" : "light");
+      }
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // مراقبة أي تغيير على localStorage (من نفس النافذة أو من نافذة أخرى)
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === THEME_KEY) {
+        setTheme(e.newValue === "dark" ? "dark" : "light");
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    // دعم التغيير من نفس النافذة (polling)
+    let lastTheme = localStorage.getItem(THEME_KEY);
+    const interval = setInterval(() => {
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored && stored !== lastTheme) {
+        setTheme(stored === "dark" ? "dark" : "light");
+        lastTheme = stored;
+      }
+    }, 500);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  }, []);
+
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+export const useTheme = () => useContext(ThemeContext);

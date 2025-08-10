@@ -138,6 +138,12 @@ export const SearchProvider = ({ children }) => {
     return ['iPhone', 'Gaming Headphones', 'Wireless Speakers', 'Smart Watch', 'Laptop'];
   };
 
+  const addToHistory = (query) => {
+    if (query.trim() && !searchHistory.includes(query.trim())) {
+      setSearchHistory(prev => [query.trim(), ...prev.slice(0, 9)]); // Keep last 10 searches
+    }
+  };
+
   const value = {
     searchQuery,
     setSearchQuery,
@@ -149,6 +155,7 @@ export const SearchProvider = ({ children }) => {
     clearSearchHistory,
     removeFromHistory,
     getPopularSearches,
+    addToHistory,
     allProducts
   };
 

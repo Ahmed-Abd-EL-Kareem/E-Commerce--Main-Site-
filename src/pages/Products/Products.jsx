@@ -1,328 +1,691 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import './Products.css';
+import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCategory } from "../../context/CategoryContext";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import Loading from "../../components/Loading/Loading";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
+import ProductCard from "../../components/ProductCard/ProductCard";
+
+const MAX_PRICE = 47000;
+const MIN_PRICE = 0;
+const BRANDS_TO_SHOW = 5;
 
 const Products = () => {
-  const { t } = useTranslation();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('default');
-  const [priceRange, setPriceRange] = useState([0, 2000]);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  const productsPerPage = 12;
+  const params = new URLSearchParams(location.search);
 
+  // Extract category from URL params and ensure it's a string
+  let categoryFromUrl = params.get("category") || "all";
+  if (typeof categoryFromUrl === "object") {
+    categoryFromUrl = categoryFromUrl.en || categoryFromUrl.ar || "all";
+  }
+  const categorySlug = categoryFromUrl.toLowerCase();
+
+  const { setSelectedCategory } = useCategory();
+  const { t, i18n } = useTranslation();
+  const language = i18n.language === "ar" ? "ar" : "en";
+
+  // --- فلترة ---
+  const [selectedBrands, setSelectedBrands] = React.useState([]);
+  const [priceRange, setPriceRange] = React.useState([0, 35000]);
+  const [rating, setRating] = React.useState(0);
+  const [brands, setBrands] = React.useState([]);
+  const [viewMode, setViewMode] = useState("grid"); // Add view mode state
+
+  // حالة ظهور الفلتر في الشاشات الصغيرة والمتوسطة
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // حالة معرفة إذا الشاشة كبيرة أم لا
+  const [isLargeScreen, setIsLargeScreen] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(min-width: 1200px)").matches
+      : true
+  );
+  // تتبع الوضع الليلي/الفاتح
+  const [themeMode, setThemeMode] = useState(() =>
+    typeof document !== "undefined"
+      ? document.documentElement.getAttribute("data-theme") || ""
+      : ""
+  );
+
+  // Listen for view mode changes from SecondNavbar
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    const handleViewModeChange = (event) => {
+      setViewMode(event.detail.viewMode);
+    };
+
+    window.addEventListener("viewModeChanged", handleViewModeChange);
+    return () => {
+      window.removeEventListener("viewModeChanged", handleViewModeChange);
+    };
   }, []);
 
   useEffect(() => {
-    // Get search query from URL params
-    const query = searchParams.get('search') || '';
-    setSearchQuery(query);
-  }, [searchParams]);
+    const observer = new MutationObserver(() => {
+      setThemeMode(document.documentElement.getAttribute("data-theme") || "");
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
+  // تتبع حجم الشاشة في كل تغيير
   useEffect(() => {
-    filterAndSortProducts();
-  }, [products, selectedCategory, sortBy, priceRange, searchQuery]);
+    const mediaQuery = window.matchMedia("(min-width: 1200px)");
+    const handleChange = () => {
+      setIsLargeScreen(mediaQuery.matches);
+      console.log(
+        "isLargeScreen:",
+        mediaQuery.matches,
+        "window.innerWidth:",
+        window.innerWidth
+      );
+    };
+    handleChange(); // تحديث عند mount
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
+  // الاستماع لحدث الفلتر دائمًا في جميع الشاشات غير الكبيرة
+  useEffect(() => {
+    if (isLargeScreen) return;
+    const toggleFilter = () => {
+      console.log(
+        "toggleProductFilter event received!",
+        "isLargeScreen:",
+        isLargeScreen,
+        "window.innerWidth:",
+        window.innerWidth
+      );
+      setIsFilterOpen((prev) => !prev);
+    };
+    window.addEventListener("toggleProductFilter", toggleFilter);
+    return () =>
+      window.removeEventListener("toggleProductFilter", toggleFilter);
+  }, [isLargeScreen]);
+
+  // منع تمرير الصفحة عند فتح الفلتر في الشاشات الصغيرة والمتوسطة
+  useEffect(() => {
+    if (!isLargeScreen && isFilterOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLargeScreen, isFilterOpen]);
+
+  // بناء رابط الفلترة
+  const buildApiUrl = () => {
+    // Ensure categorySlug is a string and handle edge cases
+    let categoryParam = categorySlug;
+    if (typeof categorySlug === "object") {
+      categoryParam = categorySlug.en || categorySlug.ar || "all";
+    } else if (
+      !categorySlug ||
+      categorySlug === "undefined" ||
+      categorySlug === "null"
+    ) {
+      categoryParam = "all";
+    }
+
+    let url = `https://e-commerce-back-end-kappa.vercel.app/api/product?categorySlug=${encodeURIComponent(
+      categoryParam
+    )}`;
+    if (selectedBrands.length > 0) {
+      url += `&brandSlug=${selectedBrands.join(",")}`;
+    }
+    if (priceRange[0] > MIN_PRICE) url += `&basePrice[gte]=${priceRange[0]}`;
+    if (priceRange[1] < MAX_PRICE) url += `&basePrice[lte]=${priceRange[1]}`;
+    if (rating > 0) url += `&averageRating[gte]=${rating}`;
+    return url;
+  };
+
+  // جلب المنتجات حسب الفلاتر
   const fetchProducts = async () => {
     try {
-      setLoading(true);
-      const response = await fetch('https://dummyjson.com/products?limit=100');
-      const data = await response.json();
-      setProducts(data.products);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('https://dummyjson.com/products/category-list');
-      const data = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      setCategories([]);
-    }
-  };
-
-  const filterAndSortProducts = () => {
-    let filtered = [...products];
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      console.log(
+        "Fetching products with categorySlug:",
+        categorySlug,
+        "type:",
+        typeof categorySlug
       );
+      const url = buildApiUrl();
+      console.log("API URL:", url);
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return [];
+    }
+  };
+
+  // جلب المنتجات
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["products", categorySlug, selectedBrands, priceRange, rating],
+    queryFn: fetchProducts,
+    keepPreviousData: true,
+  });
+
+  // جلب العلامات التجارية من API
+  React.useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const res = await fetch(
+          "https://e-commerce-back-end-kappa.vercel.app/api/brand"
+        );
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setBrands(data.data.brands || []);
+      } catch (error) {
+        console.error("Error fetching brands:", error);
+        setBrands([]);
+      }
+    };
+    fetchBrands();
+  }, []);
+
+  React.useEffect(() => {
+    setSelectedCategory(categorySlug);
+  }, [categorySlug, setSelectedCategory]);
+
+  // تحديث الفلاتر من الـ URL عند التحميل الأولي
+  React.useEffect(() => {
+    // Brands
+    const brandsParam = params.get("brands") || params.get("Brands");
+    if (brandsParam) {
+      setSelectedBrands(brandsParam.split(","));
+    } else {
+      setSelectedBrands([]);
+    }
+    // Price
+    const minPrice = params.get("minPrice");
+    const maxPrice = params.get("maxPrice");
+    if (minPrice || maxPrice) {
+      setPriceRange([
+        minPrice ? Number(minPrice) : 0,
+        maxPrice ? Number(maxPrice) : 35000,
+      ]);
+    } else {
+      setPriceRange([0, 35000]);
+    }
+    // Rating
+    const ratingParam = params.get("rating");
+    if (ratingParam) {
+      setRating(Number(ratingParam));
+    } else {
+      setRating(0);
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
+
+  // تحديث الـ URL عند تغيير الفلاتر
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams();
+
+    // Ensure category is a string
+    let categoryParam = categorySlug;
+    if (typeof categorySlug === "object") {
+      categoryParam = categorySlug.en || categorySlug.ar || "all";
+    } else if (
+      !categorySlug ||
+      categorySlug === "undefined" ||
+      categorySlug === "null"
+    ) {
+      categoryParam = "all";
     }
 
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+    urlParams.set("category", categoryParam);
+    if (selectedBrands.length > 0) {
+      urlParams.set("brands", selectedBrands.join(","));
     }
-
-    // Filter by price range
-    filtered = filtered.filter(product => {
-      const price = product.discountPercentage > 0 
-        ? product.price * (1 - product.discountPercentage / 100)
-        : product.price;
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => getDiscountedPrice(a) - getDiscountedPrice(b));
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => getDiscountedPrice(b) - getDiscountedPrice(a));
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'discount':
-        filtered.sort((a, b) => b.discountPercentage - a.discountPercentage);
-        break;
-      default:
-        break;
+    if (priceRange[0] > MIN_PRICE) urlParams.set("minPrice", priceRange[0]);
+    if (priceRange[1] < MAX_PRICE) urlParams.set("maxPrice", priceRange[1]);
+    if (rating > 0) urlParams.set("rating", rating);
+    const newUrl = `/products?${urlParams.toString()}`;
+    if (location.pathname + location.search !== newUrl) {
+      navigate(newUrl, { replace: true });
     }
+    // eslint-disable-next-line
+  }, [selectedBrands, priceRange, rating, categorySlug]);
 
-    setFilteredProducts(filtered);
-    setCurrentPage(1);
-  };
-
-  const getDiscountedPrice = (product) => {
-    return product.discountPercentage > 0
-      ? (product.price * (1 - product.discountPercentage / 100)).toFixed(2)
-      : product.price.toFixed(2);
-  };
-
-  const handleProductClick = (product) => {
-    navigate(`/product/${product.id}`);
-  };
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-  };
-
-  const handleSortChange = (sort) => {
-    setSortBy(sort);
-  };
-
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    setSearchParams(query ? { search: query } : {});
-  };
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  if (loading) {
-    return (
-      <div className="products-page">
-        <div className="products-loading">
-          <div className="products-loading-spinner"></div>
-          <p>{t('common.loading') || 'Loading products...'}</p>
-        </div>
-      </div>
-    );
-  }
+  // --- واجهة الفلاتر ---
+  const [showAllBrands, setShowAllBrands] = React.useState(false);
+  const brandsToDisplay = showAllBrands
+    ? brands
+    : brands.slice(0, BRANDS_TO_SHOW);
 
   return (
-    <div className="products-page">
-      <div className="products-container">
-        {/* Header Section */}
-        <div className="products-header">
-          <div className="products-title-section">
-            <h1>All Products</h1>
-            <p>Discover our complete collection of premium electronics and gadgets</p>
+    <div className="flex gap-8">
+      {/* Overlay في الشاشات الصغيرة والمتوسطة */}
+      {!isLargeScreen && (
+        <div
+          className={`fixed inset-0 bg-black/50 z-[9998] transition-opacity duration-300 ${
+            isFilterOpen ? "block" : "hidden"
+          }`}
+          onClick={() => setIsFilterOpen(false)}
+        ></div>
+      )}
+      {/* Sidebar في الشاشات الصغيرة والمتوسطة */}
+      {!isLargeScreen && (
+        <aside
+          className={`fixed top-0 left-0 h-full w-[75vw] max-w-xs min-w-0 shadow-2xl flex flex-col gap-6 p-4
+            transition-transform duration-300 z-[9999] border-none rounded-none overflow-y-auto
+            ${
+              isFilterOpen ? "translate-x-0" : "-translate-x-full"
+            } sidebar-filters`}
+          data-theme={themeMode}
+          style={{ borderRadius: 0, background: "var(--card-bg)" }}
+        >
+          {/* زر إغلاق دائري صغير في الأعلى يمين */}
+          <button
+            className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full border border-blue-600 bg-white text-blue-600 shadow hover:bg-blue-600 hover:text-white transition"
+            onClick={() => setIsFilterOpen(false)}
+            aria-label={language === "ar" ? "إغلاق الفلتر" : "Close filter"}
+          >
+            <span className="text-2xl">×</span>
+          </button>
+          {/* عنوان الفلتر */}
+          <div className="sidebar-title text-lg font-bold text-blue-700 mb-4 text-center">
+            {language === "ar" ? "فلترة المنتجات" : "Filter Products"}
           </div>
-          
-          {/* Search Bar */}
-          <div className="products-search">
+          {/* باقي عناصر الفلتر */}
+          {/* العلامة التجارية */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {language === "ar" ? "العلامات التجارية" : "Brands"}
+            </h3>
+            {brandsToDisplay.map((brand) => (
+              <div key={brand.slug} className="mb-3 flex items-center">
+                <label className="flex items-center cursor-pointer w-full text-lg gap-3">
+                  <input
+                    type="checkbox"
+                    value={brand.slug}
+                    checked={selectedBrands.includes(brand.slug)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedBrands((prev) =>
+                          Array.from(new Set([...prev, brand.slug]))
+                        );
+                      } else {
+                        setSelectedBrands((prev) =>
+                          prev.filter((slug) => slug !== brand.slug)
+                        );
+                      }
+                    }}
+                    className="accent-blue-600 w-6 h-6 mr-2 border-2 border-gray-400 rounded"
+                  />
+                  {brand.logoUrl && (
+                    <img
+                      src={brand.logoUrl}
+                      alt={brand.slug}
+                      className="w-8 h-8 object-contain rounded bg-white mr-2 border"
+                    />
+                  )}
+                  <span className="text-lg font-medium">
+                    {typeof brand.name === "object"
+                      ? brand.name[language] ||
+                        brand.name["en"] ||
+                        brand.name["ar"] ||
+                        ""
+                      : brand.name || ""}
+                  </span>
+                </label>
+              </div>
+            ))}
+            {brands.length > BRANDS_TO_SHOW && (
+              <button
+                onClick={() => setShowAllBrands((prev) => !prev)}
+                className="text-sm text-blue-600 hover:underline mt-2 font-semibold"
+                style={{ color: "var(--primary-blue)" }}
+              >
+                {showAllBrands
+                  ? language === "ar"
+                    ? "عرض أقل"
+                    : "Show Less"
+                  : language === "ar"
+                  ? "عرض المزيد"
+                  : "Show More"}
+              </button>
+            )}
+            <div>
+              <button
+                onClick={() => setSelectedBrands([])}
+                className="mt-3 text-sm font-semibold px-4 py-2 rounded-full border border-blue-500 bg-blue-50 text-blue-700 transition-colors duration-200 hover:bg-blue-500 hover:text-white shadow-sm"
+              >
+                {language === "ar" ? "عرض المزيد" : "Show More"}
+              </button>
+            </div>
+          </div>
+          {/* السعر (شريط مزدوج) */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {t("cart.price")}
+            </h3>
+            <div
+              className="mb-4 text-base font-bold"
+              style={{ color: "var(--text)" }}
+            >
+              {t("common.currency")} {priceRange[0]} – {t("common.currency")}{" "}
+              {priceRange[1]}
+            </div>
+            <div className="px-2 py-4">
+              <Slider
+                range
+                min={MIN_PRICE}
+                max={MAX_PRICE}
+                step={100}
+                value={priceRange}
+                onChange={(values) =>
+                  setPriceRange([
+                    Math.min(values[0], values[1]),
+                    Math.max(values[0], values[1]),
+                  ])
+                }
+                trackStyle={[
+                  { backgroundColor: "var(--primary-blue)", height: 8 },
+                ]}
+                handleStyle={[
+                  {
+                    borderColor: "var(--primary-blue)",
+                    height: 24,
+                    width: 24,
+                    marginTop: -8,
+                    backgroundColor: "#fff",
+                  },
+                  {
+                    borderColor: "var(--primary-blue)",
+                    height: 24,
+                    width: 24,
+                    marginTop: -8,
+                    backgroundColor: "#fff",
+                  },
+                ]}
+                railStyle={{ backgroundColor: "#cbd5e1", height: 8 }}
+              />
+            </div>
+          </div>
+          {/* التقييم */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {language === "ar" ? "التقييم" : "Rating"}
+            </h3>
             <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="products-search-input"
+              type="range"
+              min={0}
+              max={5}
+              step={0.5}
+              value={rating}
+              onChange={(e) => setRating(+e.target.value)}
+              className="w-full h-3 rounded-lg accent-blue-600 bg-blue-500"
+              style={{ accentColor: "var(--primary-blue)" }}
             />
-            <svg className="products-search-icon" width="20" height="20" viewBox="0 0 20 20">
-              <path d="M19 19L13 13L19 19ZM15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* Filters and Sorting */}
-        <div className="products-controls">
-          <div className="products-filters">
-            <div className="products-filter-group">
-              <label>Category:</label>
-              <select 
-                value={selectedCategory} 
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="products-select"
-              >
-                <option value="all">All Categories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="products-filter-group">
-              <label>Sort by:</label>
-              <select 
-                value={sortBy} 
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="products-select"
-              >
-                <option value="default">Default</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
-                <option value="discount">Best Deals</option>
-              </select>
+            <div
+              className="text-base mt-2 font-semibold"
+              style={{ color: "var(--text)" }}
+            >
+              {rating}+
             </div>
           </div>
-
-          <div className="products-results-info">
-            <span>{filteredProducts.length} products found</span>
+        </aside>
+      )}
+      {/* Sidebar في الشاشات الكبيرة */}
+      {isLargeScreen && (
+        <aside
+          className="sidebar-filters sticky top-8 self-start min-w-[260px] max-h-[calc(100vh-40px)] h-[calc(100vh-40px)] flex flex-col shadow-xl z-10 overflow-y-auto border-none gap-8 py-10 px-4"
+          data-theme={themeMode}
+          style={{ color: "var(--text)", background: "var(--card-bg)" }}
+        >
+          {/* عنوان الفلتر */}
+          <div className="sidebar-title text-xl font-bold text-blue-700 mb-6 text-center">
+            {language === "ar" ? "فلترة المنتجات" : "Filter Products"}
           </div>
-        </div>
-
-        {/* Products Grid */}
-        {currentProducts.length > 0 ? (
-          <>
-            <div className="products-grid">
-              {currentProducts.map(product => (
-                <div 
-                  key={product.id} 
-                  className="product-card"
-                  onClick={() => handleProductClick(product)}
-                >
-                  <div className="product-card-image">
-                    <img src={product.thumbnail} alt={product.title} loading="lazy" />
-                    {product.discountPercentage > 0 && (
-                      <div className="product-discount-badge">
-                        -{Math.round(product.discountPercentage)}%
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="product-card-content">
-                    <div className="product-brand">
-                      {product.brand || product.category}
-                    </div>
-                    
-                    <h3 className="product-title">{product.title}</h3>
-                    
-                    <div className="product-rating">
-                      <div className="product-stars">
-                        {[...Array(5)].map((_, i) => (
-                          <svg 
-                            key={i} 
-                            className={`product-star ${i < Math.floor(product.rating) ? 'filled' : ''}`}
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 14 14"
-                          >
-                            <path d="M7 1L8.545 4.13L12 4.635L9.5 7.07L10.09 10.5L7 8.885L3.91 10.5L4.5 7.07L2 4.635L5.455 4.13L7 1Z" />
-                          </svg>
-                        ))}
-                      </div>
-                      <span className="product-rating-text">({product.rating})</span>
-                    </div>
-                    
-                    <div className="product-price">
-                      <span className="product-current-price">
-                        ${getDiscountedPrice(product)}
-                      </span>
-                      {product.discountPercentage > 0 && (
-                        <span className="product-original-price">
-                          ${product.price.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+          {/* باقي عناصر الفلتر */}
+          {/* العلامة التجارية */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {language === "ar" ? "العلامات التجارية" : "Brands"}
+            </h3>
+            {brandsToDisplay.map((brand) => (
+              <div key={brand.slug} className="mb-3 flex items-center">
+                <label className="flex items-center cursor-pointer w-full text-lg gap-3">
+                  <input
+                    type="checkbox"
+                    value={brand.slug}
+                    checked={selectedBrands.includes(brand.slug)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedBrands((prev) =>
+                          Array.from(new Set([...prev, brand.slug]))
+                        );
+                      } else {
+                        setSelectedBrands((prev) =>
+                          prev.filter((slug) => slug !== brand.slug)
+                        );
+                      }
+                    }}
+                    className="accent-blue-600 w-6 h-6 mr-2 border-2 border-gray-400 rounded"
+                  />
+                  {brand.logoUrl && (
+                    <img
+                      src={brand.logoUrl}
+                      alt={brand.slug}
+                      className="w-8 h-8 object-contain rounded bg-white mr-2 border"
+                    />
+                  )}
+                  <span className="text-lg font-medium">
+                    {typeof brand.name === "object"
+                      ? brand.name[language] ||
+                        brand.name["en"] ||
+                        brand.name["ar"] ||
+                        ""
+                      : brand.name || ""}
+                  </span>
+                </label>
+              </div>
+            ))}
+            {brands.length > BRANDS_TO_SHOW && (
+              <button
+                onClick={() => setShowAllBrands((prev) => !prev)}
+                className="text-sm text-blue-600 hover:underline mt-2 font-semibold"
+                style={{ color: "var(--primary-blue)" }}
+              >
+                {showAllBrands
+                  ? language === "ar"
+                    ? "عرض أقل"
+                    : "Show Less"
+                  : language === "ar"
+                  ? "عرض المزيد"
+                  : "Show More"}
+              </button>
+            )}
+            <div>
+              <button
+                onClick={() => setSelectedBrands([])}
+                className="mt-3 text-sm font-semibold px-4 py-2 rounded-full border border-blue-500 bg-blue-50 text-blue-700 transition-colors duration-200 hover:bg-blue-500 hover:text-white shadow-sm"
+              >
+                {language === "ar" ? "عرض المزيد" : "Show More"}
+              </button>
+            </div>
+          </div>
+          {/* السعر (شريط مزدوج) */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {t("cart.price")}
+            </h3>
+            <div
+              className="mb-4 text-base font-bold"
+              style={{ color: "var(--text)" }}
+            >
+              {t("common.currency")} {priceRange[0]} – {t("common.currency")}{" "}
+              {priceRange[1]}
+            </div>
+            <div className="px-2 py-4">
+              <Slider
+                range
+                min={MIN_PRICE}
+                max={MAX_PRICE}
+                step={100}
+                value={priceRange}
+                onChange={(values) =>
+                  setPriceRange([
+                    Math.min(values[0], values[1]),
+                    Math.max(values[0], values[1]),
+                  ])
+                }
+                trackStyle={[
+                  { backgroundColor: "var(--primary-blue)", height: 8 },
+                ]}
+                handleStyle={[
+                  {
+                    borderColor: "var(--primary-blue)",
+                    height: 24,
+                    width: 24,
+                    marginTop: -8,
+                    backgroundColor: "#fff",
+                  },
+                  {
+                    borderColor: "var(--primary-blue)",
+                    height: 24,
+                    width: 24,
+                    marginTop: -8,
+                    backgroundColor: "#fff",
+                  },
+                ]}
+                railStyle={{ backgroundColor: "#cbd5e1", height: 8 }}
+              />
+            </div>
+          </div>
+          {/* التقييم */}
+          <div
+            className="mb-8 rounded-lg shadow-sm flex flex-col"
+            style={{
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              border: "1px solid var(--border-color)",
+              padding: "2rem",
+            }}
+          >
+            <h3
+              className="text-xl font-extrabold mb-4 border-b pb-2"
+              style={{ borderColor: "var(--border-color)" }}
+            >
+              {language === "ar" ? "التقييم" : "Rating"}
+            </h3>
+            <input
+              type="range"
+              min={0}
+              max={5}
+              step={0.5}
+              value={rating}
+              onChange={(e) => setRating(+e.target.value)}
+              className="w-full h-3 rounded-lg accent-blue-600 bg-blue-500"
+              style={{ accentColor: "var(--primary-blue)" }}
+            />
+            <div
+              className="text-base mt-2 font-semibold"
+              style={{ color: "var(--text)" }}
+            >
+              {rating}+
+            </div>
+          </div>
+        </aside>
+      )}
+      {/* المنتجات */}
+      <div style={{ flex: 1 }}>
+        <div className="recommendations-section">
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <div
+              className={`p-6 w-full ${
+                viewMode === "list"
+                  ? "space-y-6" // List view: vertical stack with more spacing
+                  : "grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" // Enhanced grid view with better responsive breakpoints
+              }`}
+            >
+              {products?.map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  language={language}
+                  t={t}
+                  navigate={navigate}
+                  viewMode={viewMode}
+                />
               ))}
             </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="products-pagination">
-                <button 
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="pagination-btn"
-                >
-                  Previous
-                </button>
-                
-                <div className="pagination-numbers">
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`pagination-number ${currentPage === i + 1 ? 'active' : ''}`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-                
-                <button 
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="pagination-btn"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="products-no-results">
-            <div className="no-results-icon">
-              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                <circle cx="32" cy="32" r="30" stroke="#e5e7eb" strokeWidth="4"/>
-                <path d="M22 22L42 42M22 42L42 22" stroke="#e5e7eb" strokeWidth="4" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <h3>No products found</h3>
-            <p>Try adjusting your search or filter criteria</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default Products; 
+export default Products;

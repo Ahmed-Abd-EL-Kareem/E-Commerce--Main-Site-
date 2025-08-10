@@ -37,17 +37,34 @@ i18n
     }
   });
 
-// Set document direction based on language
+// Enhanced language switching with smooth transitions
 i18n.on('languageChanged', (lng) => {
   const dir = lng === 'ar' ? 'rtl' : 'ltr';
+  
+  // Add transition class to body for smooth language switching
+  document.body.classList.add('language-transitioning');
+  
+  // Update document attributes
   document.documentElement.dir = dir;
   document.documentElement.lang = lng;
+  document.documentElement.setAttribute('data-language', lng);
+  
+  // Remove transition class after animation completes
+  setTimeout(() => {
+    document.body.classList.remove('language-transitioning');
+  }, 300);
+  
+  // Trigger custom event for components to react to language changes
+  window.dispatchEvent(new CustomEvent('languageChanged', { 
+    detail: { language: lng, direction: dir } 
+  }));
 });
 
-// Set initial direction
+// Set initial direction and language
 const currentLang = i18n.language || 'en';
 const dir = currentLang === 'ar' ? 'rtl' : 'ltr';
 document.documentElement.dir = dir;
 document.documentElement.lang = currentLang;
+document.documentElement.setAttribute('data-language', currentLang);
 
 export default i18n; 

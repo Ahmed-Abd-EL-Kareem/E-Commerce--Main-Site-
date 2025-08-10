@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './FAQSection.css';
 
 const faqs = [
   {
@@ -24,16 +23,25 @@ const FAQSection = () => {
   };
 
   return (
-    <section className="faq-section">
-      <h2>FAQ</h2>
-      <div className="faq-list">
+    <section className="my-8 mx-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-8">
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">FAQ</h2>
+      <div className="max-w-4xl mx-auto">
         {faqs.map((faq, idx) => (
-          <div className="faq-item" key={idx}>
-            <button className="faq-question" onClick={() => toggle(idx)}>
+          <div key={idx} className="border-b border-slate-200 dark:border-slate-700 last:border-b-0">
+            <button 
+              className="w-full bg-transparent border-none outline-none text-left text-lg font-medium py-4 cursor-pointer flex justify-between items-center text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              onClick={() => toggle(idx)}
+            >
               {faq.question}
-              <span>{openIndex === idx ? '-' : '+'}</span>
+              <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-transform duration-300">
+                {openIndex === idx ? '−' : '+'}
+              </span>
             </button>
-            {openIndex === idx && <div className="faq-answer">{faq.answer}</div>}
+            {openIndex === idx && (
+              <div className="pb-4 text-slate-600 dark:text-slate-400 text-base leading-relaxed animate-in slide-in-from-top-2 duration-300">
+                {faq.answer}
+              </div>
+            )}
           </div>
         ))}
       </div>
