@@ -1,65 +1,15 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from "react";
 
 const CartContext = createContext();
 
 // Cart reducer to handle all cart actions
 const cartReducer = (state, action) => {
   switch (action.type) {
-    case 'ADD_TO_CART': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
-      
-      if (existingItem) {
-        return {
-          ...state,
-          items: state.items.map(item =>
-            item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
-        };
-      }
-      
+    case "SET_CART":
       return {
         ...state,
-        items: [...state.items, { ...action.payload, quantity: 1 }]
+        items: action.payload || [],
       };
-    }
-    
-    case 'REMOVE_FROM_CART':
-      return {
-        ...state,
-        items: state.items.filter(item => item.id !== action.payload)
-      };
-    
-    case 'UPDATE_QUANTITY':
-      if (action.payload.quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter(item => item.id !== action.payload.id)
-        };
-      }
-      
-      return {
-        ...state,
-        items: state.items.map(item =>
-          item.id === action.payload.id
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        )
-      };
-    
-    case 'CLEAR_CART':
-      return {
-        ...state,
-        items: []
-      };
-    
-    case 'LOAD_CART':
-      return {
-        ...state,
-        items: action.payload || []
-      };
-    
     default:
       return state;
   }
@@ -67,70 +17,174 @@ const cartReducer = (state, action) => {
 
 // Initial cart state
 const initialState = {
-  items: []
+  items: [],
 };
 
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('alamia-cart-items');
-    if (savedCart) {
-      try {
-        const parsedCart = JSON.parse(savedCart);
-        console.log('Loading cart from localStorage:', parsedCart);
-        dispatch({ type: 'LOAD_CART', payload: parsedCart });
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
-      }
+  // جلب السلة من الـ API
+  const fetchCart = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        "https://e-commerce-back-end-kappa.vercel.app/api/cart",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("فشل جلب السلة");
+      const data = await res.json();
+      const items = data.data?.items || data.cart?.items || data.items || [];
+      dispatch({ type: "SET_CART", payload: items });
+    } catch {
+      dispatch({ type: "SET_CART", payload: [] });
     }
+  };
+
+  // تحميل السلة عند أول تحميل
+  useEffect(() => {
+    fetchCart();
+    // الاستماع لتحديث السلة من أماكن أخرى
+    const handleCartUpdated = () => fetchCart();
+    window.addEventListener("cartUpdated", handleCartUpdated);
+    return () => window.removeEventListener("cartUpdated", handleCartUpdated);
   }, []);
 
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    console.log('Saving cart to localStorage:', state.items);
-    localStorage.setItem('alamia-cart-items', JSON.stringify(state.items));
-  }, [state.items]);
-
-  // Cart actions
-  const addToCart = (product) => {
-    dispatch({ type: 'ADD_TO_CART', payload: product });
+  // إضافة منتج للسلة
+  const addToCart = async (product) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        "https://e-commerce-back-end-kappa.vercel.app/api/cart",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            items: [
+              {
+                product: product.id,
+                sku: product.sku || "",
+                quantity: product.quantity || 1,
+              },
+            ],
+          }),
+        }
+      );
+      if (!res.ok) throw new Error("فشل الإضافة للسلة");
+      await fetchCart();
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch {
+      // لا شيء
+    }
   };
 
-  const removeFromCart = (productId) => {
-    dispatch({ type: 'REMOVE_FROM_CART', payload: productId });
+  // حذف منتج من السلة
+  const removeFromCart = async (productId, sku) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `https://e-commerce-back-end-kappa.vercel.app/api/cart/${productId}/${
+          sku || ""
+        }`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("فشل حذف المنتج");
+      await fetchCart();
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch {
+      // لا شيء
+    }
   };
 
-  const updateQuantity = (productId, quantity) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity } });
+  // تعديل الكمية
+  const updateQuantity = async (productId, sku, quantity) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `https://e-commerce-back-end-kappa.vercel.app/api/cart/${productId}/${
+          sku || ""
+        }`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ quantity }),
+        }
+      );
+      if (!res.ok) throw new Error("فشل تعديل الكمية");
+      await fetchCart();
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch {
+      // لا شيء
+    }
   };
 
-  const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
+  // تصفير السلة
+  const clearCart = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        "https://e-commerce-back-end-kappa.vercel.app/api/cart",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error("فشل حذف السلة");
+      await fetchCart();
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch {
+      // لا شيء
+    }
   };
 
-  // Cart calculations
+  // حساب الإجمالي
   const getCartTotal = () => {
     return state.items.reduce((total, item) => {
-      // Handle cases where price might be undefined, null, or not a string
-      const priceString = item.price?.toString() || '0';
-      const price = parseFloat(priceString.replace(/[^0-9.-]+/g, '')) || 0;
-      return total + (price * item.quantity);
+      const price =
+        typeof item.price === "string"
+          ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
+          : item.price || 0;
+      return total + price * item.quantity;
     }, 0);
   };
 
+  // عدد المنتجات في السلة
   const getCartCount = () => {
-    return state.items.reduce((count, item) => count + item.quantity, 0);
+    return state.items.reduce((count, item) => count + (item.quantity || 0), 0);
   };
 
+  // كمية منتج معين
   const getItemQuantity = (productId) => {
-    const item = state.items.find(item => item.id === productId);
+    const item = state.items.find(
+      (item) => item.productId === productId || item.id === productId
+    );
     return item ? item.quantity : 0;
   };
 
+  // هل المنتج موجود في السلة
   const isInCart = (productId) => {
-    return state.items.some(item => item.id === productId);
+    return state.items.some(
+      (item) => item.productId === productId || item.id === productId
+    );
   };
 
   const value = {
@@ -142,20 +196,17 @@ export const CartProvider = ({ children }) => {
     getCartTotal,
     getCartCount,
     getItemQuantity,
-    isInCart
+    isInCart,
+    fetchCart,
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
-}; 
+};

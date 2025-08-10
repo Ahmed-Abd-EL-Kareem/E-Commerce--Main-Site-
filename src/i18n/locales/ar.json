@@ -97,7 +97,11 @@
     "quantity": "الكمية",
     "price": "السعر",
     "addedToCart": "تمت الإضافة إلى السلة بنجاح",
-    "addToCart": "أضف إلى السلة"
+    "addToCart": "أضف إلى السلة",
+    "clearCart": "حذف كل السلة",
+    "apply": "تطبيق",
+    "free": "مجاني",
+    "promoPlaceholder": "أدخل رمز الخصم"
   },
   "product": {
     "addToCart": "أضف إلى السلة",
@@ -106,11 +110,34 @@
     "inStock": "متوفر",
     "reviews": "التقييمات",
     "description": "الوصف",
-    "specifications": "المواصفات",
+    "specifications": {
+      "warranty": "ضمان"
+    },
     "relatedProducts": "المنتجات ذات الصلة",
     "share": "مشاركة",
     "favorite": "المفضلة",
     "unfavorite": "إزالة من المفضلة"
+  },
+  "productDetails": {
+    "buyNow": "اشتري الآن",
+    "features": {
+      "returns": "إرجاع سهل",
+      "freeShipping": "شحن مجاني",
+      "securePayment": "دفع آمن"
+    },
+    "tabs": {
+      "description": "الوصف",
+      "specifications": "المواصفات",
+      "reviews": "التقييمات"
+    },
+    "relatedProducts": "منتجات ذات صلة",
+    "inCartEn": "تمت الإضافة للسلة!",
+    "addToCartSuccessEn": "تمت إضافة المنتج للسلة بنجاح!",
+    "inStock": "متوفر ({{count}})",
+    "reviews": {
+      "basedOn": "بناءً على {{count}} تقييم"
+    },
+    "outOfStock": "غير متوفر"
   },
   "guides": {
     "title": "أدلة لكل ما تحتاجه",
@@ -250,6 +277,40 @@
     "emailInvalid": "يرجى إدخال عنوان بريد إلكتروني صحيح",
     "phoneInvalid": "يرجى إدخال رقم هاتف صحيح",
     "cityRequired": "المدينة مطلوبة عند توفير الشارع",
-    "countryRequired": "البلد مطلوب عند توفير المدينة"
+    "countryRequired": "البلد مطلوب عند توفير المدينة",
+    "orders": "الطلبات",
+    "orderId": "رقم الطلب",
+    "status": "الحالة",
+    "total": "الإجمالي",
+    "shippingAddress": "عنوان الشحن",
+    "payment": "الدفع",
+    "paymentMethod": "طريقة الدفع",
+    "paymentStatus": "حالة الدفع",
+    "items": "المنتجات",
+    "product": "المنتج",
+    "quantity": "الكمية",
+    "price": "السعر",
+    "orderedAt": "تاريخ الطلب",
+    "noOrders": "لا توجد طلبات",
+    "noOrdersDesc": "لم تقم بأي طلبات بعد.",
+    "deletedProduct": "منتج محذوف",
+    "noToken": "لم يتم العثور على رمز الدخول. يرجى تسجيل الدخول أولاً.",
+    "cancelOrder": "إلغاء الطلب",
+    "cancelSuccess": "تم إلغاء الطلب بنجاح",
+    "cancelled": "ملغي"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول...",
+    "tryDemo": "تجربة الديمو",
+    "or": "أو",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
+    "signUp": "إنشاء حساب",
+    "welcomeBack": "مرحباً بعودتك!",
+    "signInToContinue": "سجّل الدخول للمتابعة",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور"
   }
-} 
+}

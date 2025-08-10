@@ -2,14 +2,11 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 
 const Login = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { login, loading } = useAuth();
-  const { theme } = useTheme();
   const navigate = useNavigate();
-  const isRTL = i18n.language === "ar";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -63,7 +60,10 @@ const Login = () => {
     }
 
     // Fix: Pass the entire formData object instead of separate arguments
-    const result = await login({ email: formData.email, password: formData.password });
+    const result = await login({
+      email: formData.email,
+      password: formData.password,
+    });
     if (result.success) {
       navigate("/profile");
     } else {
@@ -86,13 +86,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+    <div
+      className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300"
+      style={{ background: "var(--primary-bg)" }}
+    >
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+          <div
+            className="mx-auto h-16 w-16 rounded-full flex items-center justify-center mb-6 shadow-lg"
+            style={{ background: "var(--gradient-primary)" }}
+          >
             <svg
-              className="w-8 h-8 text-white"
+              className="w-8 h-8"
+              style={{ color: "white" }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -105,21 +112,34 @@ const Login = () => {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">
+          <h2
+            className="text-3xl font-bold mb-2 transition-colors"
+            style={{ color: "var(--primary-text)" }}
+          >
             {t("auth.welcomeBack")}
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-lg transition-colors">
+          <p
+            className="text-lg transition-colors"
+            style={{ color: "var(--secondary-text)" }}
+          >
             {t("auth.signInToContinue")}
           </p>
         </div>
         {/* Login Form */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 transition-colors duration-300">
+        <div
+          className="rounded-2xl shadow-xl border p-8 transition-colors duration-300"
+          style={{
+            background: "var(--card-bg)",
+            borderColor: "var(--card-border)",
+          }}
+        >
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold mb-2"
+                style={{ color: "var(--secondary-text)" }}
               >
                 {t("auth.email")}
               </label>
@@ -134,15 +154,23 @@ const Login = () => {
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 border-2 rounded-xl text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.email
-                      ? "border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20"
-                      : "border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700"
-                  } text-slate-900 dark:text-white`}
+                      ? "border-red-300 bg-red-50"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
+                  style={{
+                    color: "var(--primary-text)",
+                    background: errors.email ? "#fef2f2" : "var(--input-bg)",
+                    borderColor: errors.email
+                      ? "#fca5a5"
+                      : "var(--input-border)",
+                  }}
                   placeholder={t("auth.emailPlaceholder")}
                   dir="ltr"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <svg
-                    className="h-5 w-5 text-slate-400"
+                    className="h-5 w-5"
+                    style={{ color: "var(--secondary-text)" }}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -157,7 +185,7 @@ const Login = () => {
                 </div>
               </div>
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm" style={{ color: "#ef4444" }}>
                   {errors.email}
                 </p>
               )}
@@ -167,7 +195,8 @@ const Login = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                className="block text-sm font-semibold mb-2"
+                style={{ color: "var(--secondary-text)" }}
               >
                 {t("auth.password")}
               </label>
@@ -182,16 +211,24 @@ const Login = () => {
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 pr-12 border-2 rounded-xl text-base transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.password
-                      ? "border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20"
-                      : "border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700"
-                  } text-slate-900 dark:text-white`}
+                      ? "border-red-300 bg-red-50"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
+                  style={{
+                    color: "var(--primary-text)",
+                    background: errors.password ? "#fef2f2" : "var(--input-bg)",
+                    borderColor: errors.password
+                      ? "#fca5a5"
+                      : "var(--input-border)",
+                  }}
                   placeholder={t("auth.passwordPlaceholder")}
                   dir="ltr"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center transition-colors"
+                  style={{ color: "var(--secondary-text)" }}
                 >
                   {showPassword ? (
                     <svg
@@ -231,7 +268,7 @@ const Login = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                <p className="mt-1 text-sm" style={{ color: "#ef4444" }}>
                   {errors.password}
                 </p>
               )}
@@ -246,11 +283,16 @@ const Login = () => {
                   type="checkbox"
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
+                  className="h-4 w-4 rounded"
+                  style={{
+                    borderColor: "var(--input-border)",
+                    background: "var(--input-bg)",
+                  }}
                 />
                 <label
                   htmlFor="rememberMe"
-                  className="ml-2 block text-sm text-slate-700 dark:text-slate-300"
+                  className="ml-2 block text-sm"
+                  style={{ color: "var(--secondary-text)" }}
                 >
                   {t("auth.rememberMe")}
                 </label>
@@ -258,7 +300,8 @@ const Login = () => {
               <div className="text-sm">
                 <Link
                   to="/forgot-password"
-                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  className="font-medium transition-colors"
+                  style={{ color: "var(--accent-text)" }}
                 >
                   {t("auth.forgotPassword")}
                 </Link>
@@ -267,7 +310,7 @@ const Login = () => {
 
             {/* Form Error */}
             {errors.form && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+              <p className="mt-2 text-sm" style={{ color: "#ef4444" }}>
                 {errors.form}
               </p>
             )}
@@ -276,12 +319,21 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold transition-all duration-200 transform hover:scale-[1.02]"
+              style={{
+                background: loading
+                  ? "var(--card-border)"
+                  : "var(--gradient-primary)",
+                color: loading ? "var(--secondary-text)" : "white",
+                opacity: loading ? 0.5 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
             >
               {loading ? (
                 <div className="flex items-center">
                   <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    className="animate-spin -ml-1 mr-3 h-5 w-5"
+                    style={{ color: "white" }}
                     fill="none"
                     viewBox="0 0 24 24"
                   >
@@ -311,7 +363,14 @@ const Login = () => {
               type="button"
               onClick={handleDemoLogin}
               disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border-2 border-slate-200 dark:border-slate-600 rounded-xl shadow-sm text-sm font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full flex justify-center py-3 px-4 border-2 rounded-xl shadow-sm text-sm font-semibold transition-all duration-200"
+              style={{
+                background: "var(--card-bg)",
+                color: "var(--primary-text)",
+                borderColor: "var(--card-border)",
+                opacity: loading ? 0.5 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
             >
               {t("auth.tryDemo")}
             </button>
@@ -321,10 +380,19 @@ const Login = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200 dark:border-slate-600" />
+                <div
+                  className="w-full border-t"
+                  style={{ borderColor: "var(--card-border)" }}
+                />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                <span
+                  className="px-2"
+                  style={{
+                    background: "var(--card-bg)",
+                    color: "var(--secondary-text)",
+                  }}
+                >
                   {t("auth.or")}
                 </span>
               </div>
@@ -335,7 +403,12 @@ const Login = () => {
           <div className="mt-6">
             <button
               type="button"
-              className="w-full inline-flex justify-center py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-xl shadow-sm bg-white dark:bg-slate-700 text-sm font-medium text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
+              className="w-full inline-flex justify-center py-2 px-4 border rounded-xl shadow-sm text-sm font-medium transition-colors"
+              style={{
+                background: "var(--card-bg)",
+                color: "var(--secondary-text)",
+                borderColor: "var(--card-border)",
+              }}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -362,11 +435,12 @@ const Login = () => {
 
         {/* Sign Up Link */}
         <div className="text-center">
-          <p className="text-slate-600 dark:text-slate-400">
+          <p style={{ color: "var(--secondary-text)" }}>
             {t("auth.dontHaveAccount")}{" "}
             <Link
               to="/signup"
-              className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+              className="font-semibold transition-colors"
+              style={{ color: "var(--accent-text)" }}
             >
               {t("auth.signUp")}
             </Link>

@@ -15,7 +15,9 @@ const getMaxVisible = () => {
 };
 
 const fetchCategories = async () => {
-  const { data } = await axios.get("http://127.0.0.1:3000/api/categories");
+  const { data } = await axios.get(
+    "https://e-commerce-back-end-kappa.vercel.app/api/categories"
+  );
   return data.data;
 };
 
@@ -30,7 +32,7 @@ const SecondNavbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const showMoreBtnRef = useRef(null);
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [viewMode, setViewMode] = useState("grid"); // grid or list
 
   // إغلاق القائمة عند الضغط خارجها
   useEffect(() => {
@@ -132,86 +134,129 @@ const SecondNavbar = () => {
 
   // Handle view mode toggle
   const handleViewModeToggle = () => {
-    const newViewMode = viewMode === 'grid' ? 'list' : 'grid';
+    const newViewMode = viewMode === "grid" ? "list" : "grid";
     setViewMode(newViewMode);
     // Dispatch custom event for other components to listen to
-    window.dispatchEvent(new CustomEvent('viewModeChanged', { 
-      detail: { viewMode: newViewMode } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent("viewModeChanged", {
+        detail: { viewMode: newViewMode },
+      })
+    );
   };
 
   return (
-    <nav 
+    <nav
       className={`border-b relative z-[90] transition-all duration-300 ${
-        isSticky ? 'fixed top-0 left-0 right-0 z-[95] backdrop-blur-[10px] animate-[slideDown_0.3s_ease-out]' : ''
+        isSticky
+          ? "fixed top-0 left-0 right-0 z-[95] backdrop-blur-[10px] animate-[slideDown_0.3s_ease-out]"
+          : ""
       }`}
       style={{
-        background: isSticky ? 'var(--card-bg)' : 'var(--primary-bg)',
-        borderColor: 'var(--card-border)',
-        boxShadow: isSticky ? 'var(--shadow-lg)' : 'none'
+        background: isSticky ? "var(--card-bg)" : "var(--primary-bg)",
+        borderColor: "var(--card-border)",
+        boxShadow: isSticky ? "var(--shadow-lg)" : "none",
       }}
     >
-      <div className="max-w-[1400px] mx-auto px-4 flex items-center justify-between min-h-[60px] gap-8">
-        {/* Categories Navigation */}
-        <div className="flex-1 overflow-hidden relative">
-          <div 
-            className="flex gap-2 overflow-x-auto py-2 no-scrollbar scroll-smooth relative" 
-            style={{ WebkitOverflowScrolling: 'touch' }}
+      <div className="max-w-[1400px] mx-auto px-4 min-h-[60px] gap-8 hidden md:flex items-center justify-between">
+        {/* Categories Navigation + Quick Actions */}
+        <div className="flex-1 flex items-center gap-8 overflow-hidden relative">
+          <div
+            className="flex gap-2 overflow-x-auto py-2 no-scrollbar scroll-smooth relative"
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
             {/* All Products Button */}
             <button
               className={`relative flex items-center gap-2 py-3 px-4 bg-transparent border rounded-full cursor-pointer transition-all duration-200 whitespace-nowrap text-sm font-medium min-w-fit focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-105 ${
-                selectedCategory === "all" && location.pathname !== "/exclusive-offers"
-                  ? 'font-semibold -translate-y-0.5'
-                  : 'hover:-translate-y-0.5'
+                selectedCategory === "all" &&
+                location.pathname !== "/exclusive-offers"
+                  ? "font-semibold -translate-y-0.5"
+                  : "hover:-translate-y-0.5"
               }`}
               style={{
-                background: selectedCategory === "all" && location.pathname !== "/exclusive-offers" ? 'var(--accent-text)' : 'transparent',
-                color: selectedCategory === "all" && location.pathname !== "/exclusive-offers" ? 'white' : 'var(--secondary-text)',
-                borderColor: selectedCategory === "all" && location.pathname !== "/exclusive-offers" ? 'var(--accent-text)' : 'var(--card-border)',
-                borderWidth: '1px',
-                boxShadow: selectedCategory === "all" && location.pathname !== "/exclusive-offers" ? 'var(--shadow-md)' : 'none'
+                background:
+                  selectedCategory === "all" &&
+                  location.pathname !== "/exclusive-offers"
+                    ? "var(--accent-text)"
+                    : "transparent",
+                color:
+                  selectedCategory === "all" &&
+                  location.pathname !== "/exclusive-offers"
+                    ? "white"
+                    : "var(--secondary-text)",
+                borderColor:
+                  selectedCategory === "all" &&
+                  location.pathname !== "/exclusive-offers"
+                    ? "var(--accent-text)"
+                    : "var(--card-border)",
+                borderWidth: "1px",
+                boxShadow:
+                  selectedCategory === "all" &&
+                  location.pathname !== "/exclusive-offers"
+                    ? "var(--shadow-md)"
+                    : "none",
               }}
               onClick={() => handleCategoryClick("all")}
               onMouseEnter={(e) => {
-                if (selectedCategory !== "all" || location.pathname === "/exclusive-offers") {
-                  e.target.style.background = 'var(--tertiary-bg)';
-                  e.target.style.color = 'var(--primary-text)';
+                if (
+                  selectedCategory !== "all" ||
+                  location.pathname === "/exclusive-offers"
+                ) {
+                  e.target.style.background = "var(--tertiary-bg)";
+                  e.target.style.color = "var(--primary-text)";
                 }
               }}
               onMouseLeave={(e) => {
-                if (selectedCategory !== "all" || location.pathname === "/exclusive-offers") {
-                  e.target.style.background = 'transparent';
-                  e.target.style.color = 'var(--secondary-text)';
+                if (
+                  selectedCategory !== "all" ||
+                  location.pathname === "/exclusive-offers"
+                ) {
+                  e.target.style.background = "transparent";
+                  e.target.style.color = "var(--secondary-text)";
                 }
               }}
             >
-              <span className="text-base flex items-center justify-center">🏪</span>
-              <span className="font-medium">{language === "ar" ? "الكل" : "All"}</span>
-              {selectedCategory === "all" && location.pathname !== "/exclusive-offers" && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
-                  style={{ background: 'white' }}
-                />
-              )}
+              <span className="text-base flex items-center justify-center">
+                🏪
+              </span>
+              <span className="font-medium">
+                {language === "ar" ? "الكل" : "All"}
+              </span>
+              {selectedCategory === "all" &&
+                location.pathname !== "/exclusive-offers" && (
+                  <span
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
+                    style={{ background: "white" }}
+                  />
+                )}
             </button>
 
             {/* Exclusive Offers Button */}
             <button
               className={`relative flex items-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-bold border rounded-full cursor-pointer transition-all duration-200 whitespace-nowrap text-sm min-w-fit focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-105 hover:from-blue-700 hover:to-blue-500 ${
-                location.pathname === "/exclusive-offers" ? 'font-semibold -translate-y-0.5' : 'hover:-translate-y-0.5'
+                location.pathname === "/exclusive-offers"
+                  ? "font-semibold -translate-y-0.5"
+                  : "hover:-translate-y-0.5"
               }`}
               style={{
-                borderColor: 'var(--accent-text)',
-                borderWidth: '1px',
-                boxShadow: location.pathname === "/exclusive-offers" ? 'var(--shadow-md)' : 'none'
+                borderColor: "var(--accent-text)",
+                borderWidth: "1px",
+                boxShadow:
+                  location.pathname === "/exclusive-offers"
+                    ? "var(--shadow-md)"
+                    : "none",
               }}
               onClick={() => navigate("/exclusive-offers")}
             >
-              <span className="text-base flex items-center justify-center">🎯</span>
-              <span className="font-medium">{language === "ar" ? "العروض الحصرية" : "Exclusive Offers"}</span>
+              <span className="text-base flex items-center justify-center">
+                🎯
+              </span>
+              <span className="font-medium">
+                {language === "ar" ? "العروض الحصرية" : "Exclusive Offers"}
+              </span>
               {location.pathname === "/exclusive-offers" && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
-                  style={{ background: 'white' }}
+                <span
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
+                  style={{ background: "white" }}
                 />
               )}
             </button>
@@ -225,21 +270,29 @@ const SecondNavbar = () => {
                     : cat.name;
                 const catSlugEn =
                   typeof cat.slug === "object" ? cat.slug["en"] : cat.slug;
-                const isActive = location.pathname !== "/exclusive-offers" &&
-                  selectedCategory === (catSlugEn ? catSlugEn.toLowerCase() : "");
-                
+                const isActive =
+                  location.pathname !== "/exclusive-offers" &&
+                  selectedCategory ===
+                    (catSlugEn ? catSlugEn.toLowerCase() : "");
+
                 return (
                   <button
                     key={cat._id}
                     className={`relative flex items-center gap-2 py-3 px-4 bg-transparent border rounded-full cursor-pointer transition-all duration-200 whitespace-nowrap text-sm font-medium min-w-fit focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-105 ${
-                      isActive ? 'font-semibold -translate-y-0.5' : 'hover:-translate-y-0.5'
+                      isActive
+                        ? "font-semibold -translate-y-0.5"
+                        : "hover:-translate-y-0.5"
                     }`}
                     style={{
-                      background: isActive ? 'var(--accent-text)' : 'transparent',
-                      color: isActive ? 'white' : 'var(--secondary-text)',
-                      borderColor: isActive ? 'var(--accent-text)' : 'var(--card-border)',
-                      borderWidth: '1px',
-                      boxShadow: isActive ? 'var(--shadow-md)' : 'none'
+                      background: isActive
+                        ? "var(--accent-text)"
+                        : "transparent",
+                      color: isActive ? "white" : "var(--secondary-text)",
+                      borderColor: isActive
+                        ? "var(--accent-text)"
+                        : "var(--card-border)",
+                      borderWidth: "1px",
+                      boxShadow: isActive ? "var(--shadow-md)" : "none",
                     }}
                     onClick={() =>
                       handleCategoryClick(
@@ -248,22 +301,25 @@ const SecondNavbar = () => {
                     }
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        e.target.style.background = 'var(--tertiary-bg)';
-                        e.target.style.color = 'var(--primary-text)';
+                        e.target.style.background = "var(--tertiary-bg)";
+                        e.target.style.color = "var(--primary-text)";
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
-                        e.target.style.background = 'transparent';
-                        e.target.style.color = 'var(--secondary-text)';
+                        e.target.style.background = "transparent";
+                        e.target.style.color = "var(--secondary-text)";
                       }
                     }}
                   >
-                    <span className="text-base flex items-center justify-center">📦</span>
+                    <span className="text-base flex items-center justify-center">
+                      📦
+                    </span>
                     <span className="font-medium">{catName}</span>
                     {isActive && (
-                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
-                        style={{ background: 'white' }}
+                      <span
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-sm animate-[slideIn_0.3s_ease]"
+                        style={{ background: "white" }}
                       />
                     )}
                   </button>
@@ -276,25 +332,29 @@ const SecondNavbar = () => {
                 <button
                   className="relative flex items-center gap-2 py-3 px-4 bg-transparent border rounded-full cursor-pointer transition-all duration-200 whitespace-nowrap text-sm font-medium min-w-fit focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-105 hover:-translate-y-0.5"
                   style={{
-                    color: 'var(--secondary-text)',
-                    borderColor: 'var(--card-border)',
-                    borderWidth: '1px'
+                    color: "var(--secondary-text)",
+                    borderColor: "var(--card-border)",
+                    borderWidth: "1px",
                   }}
                   ref={showMoreBtnRef}
                   onClick={() => {
                     setDropdownOpen((prev) => !prev);
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = 'var(--tertiary-bg)';
-                    e.target.style.color = 'var(--primary-text)';
+                    e.target.style.background = "var(--tertiary-bg)";
+                    e.target.style.color = "var(--primary-text)";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = 'transparent';
-                    e.target.style.color = 'var(--secondary-text)';
+                    e.target.style.background = "transparent";
+                    e.target.style.color = "var(--secondary-text)";
                   }}
                 >
-                  <span className="text-base flex items-center justify-center">⋯</span>
-                  <span className="font-medium">{language === "ar" ? "عرض المزيد" : "Show More"}</span>
+                  <span className="text-base flex items-center justify-center">
+                    ⋯
+                  </span>
+                  <span className="font-medium">
+                    {language === "ar" ? "عرض المزيد" : "Show More"}
+                  </span>
                 </button>
 
                 {/* Dropdown Background */}
@@ -319,7 +379,7 @@ const SecondNavbar = () => {
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-5 overflow-hidden z-10">
                     <div className="w-4 h-4 bg-white border-l border-t border-blue-100 rotate-45 mx-auto shadow -z-10"></div>
                   </div>
-                  
+
                   {hiddenCategories.map((cat) => {
                     const catName =
                       typeof cat.name === "object"
@@ -327,9 +387,11 @@ const SecondNavbar = () => {
                         : cat.name;
                     const catSlugEn =
                       typeof cat.slug === "object" ? cat.slug["en"] : cat.slug;
-                    const isActive = location.pathname !== "/exclusive-offers" &&
-                      selectedCategory === (catSlugEn ? catSlugEn.toLowerCase() : "");
-                    
+                    const isActive =
+                      location.pathname !== "/exclusive-offers" &&
+                      selectedCategory ===
+                        (catSlugEn ? catSlugEn.toLowerCase() : "");
+
                     return (
                       <button
                         key={cat._id}
@@ -355,85 +417,112 @@ const SecondNavbar = () => {
           </div>
 
           {/* Gradient fade for scrollable categories */}
-          <span className="pointer-events-none absolute top-0 right-0 w-8 h-full z-10 hidden md:block"
+          <span
+            className="pointer-events-none absolute top-0 right-0 w-8 h-full z-10 hidden md:block"
             style={{
-              background: 'linear-gradient(to left, var(--primary-bg), transparent)'
+              background:
+                "linear-gradient(to left, var(--primary-bg), transparent)",
             }}
           />
         </div>
 
         {/* Quick Actions */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          <button 
+          <button
             className="px-4 py-2 border rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:scale-105 theme-button-secondary"
             style={{
-              color: 'var(--secondary-text)'
+              color: "var(--secondary-text)",
             }}
             onClick={() => {
               window.dispatchEvent(new Event("toggleProductFilter"));
               console.log("Filter button clicked!");
             }}
             onMouseEnter={(e) => {
-              e.target.style.background = 'var(--accent-text)';
-              e.target.style.color = 'white';
+              e.target.style.background = "var(--accent-text)";
+              e.target.style.color = "white";
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = 'var(--card-bg)';
-              e.target.style.color = 'var(--secondary-text)';
+              e.target.style.background = "var(--card-bg)";
+              e.target.style.color = "var(--secondary-text)";
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 mr-2">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-4 h-4 mr-2"
+            >
               <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" />
             </svg>
             Filter
           </button>
 
-          <button 
+          <button
             className="px-4 py-2 border rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:scale-105 theme-button-secondary"
             style={{
-              color: 'var(--secondary-text)'
+              color: "var(--secondary-text)",
             }}
             onMouseEnter={(e) => {
-              e.target.style.background = 'var(--accent-text)';
-              e.target.style.color = 'white';
+              e.target.style.background = "var(--accent-text)";
+              e.target.style.color = "white";
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = 'var(--card-bg)';
-              e.target.style.color = 'var(--secondary-text)';
+              e.target.style.background = "var(--card-bg)";
+              e.target.style.color = "var(--secondary-text)";
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 mr-2">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-4 h-4 mr-2"
+            >
               <path d="M3 6h18M7 12h10m-7 6h4" />
             </svg>
             Sort
           </button>
 
-          <button 
+          <button
             className={`px-4 py-2 border rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 hover:scale-105 ${
-              viewMode === 'list' ? 'bg-blue-600 text-white' : 'theme-button-secondary'
+              viewMode === "list"
+                ? "bg-blue-600 text-white"
+                : "theme-button-secondary"
             }`}
             style={{
-              color: viewMode === 'list' ? 'white' : 'var(--secondary-text)',
-              borderColor: viewMode === 'list' ? 'var(--accent-text)' : 'var(--card-border)'
+              color: viewMode === "list" ? "white" : "var(--secondary-text)",
+              borderColor:
+                viewMode === "list"
+                  ? "var(--accent-text)"
+                  : "var(--card-border)",
             }}
             onClick={handleViewModeToggle}
             onMouseEnter={(e) => {
-              if (viewMode !== 'list') {
-                e.target.style.background = 'var(--accent-text)';
-                e.target.style.color = 'white';
+              if (viewMode !== "list") {
+                e.target.style.background = "var(--accent-text)";
+                e.target.style.color = "white";
               }
             }}
             onMouseLeave={(e) => {
-              if (viewMode !== 'list') {
-                e.target.style.background = 'var(--card-bg)';
-                e.target.style.color = 'var(--secondary-text)';
+              if (viewMode !== "list") {
+                e.target.style.background = "var(--card-bg)";
+                e.target.style.color = "var(--secondary-text)";
               }
             }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4 mr-2">
-              {viewMode === 'list' ? (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className="w-4 h-4 mr-2"
+            >
+              {viewMode === "list" ? (
                 // List view icon
-                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               ) : (
                 // Grid view icon
                 <>
@@ -444,13 +533,16 @@ const SecondNavbar = () => {
                 </>
               )}
             </svg>
-            {viewMode === 'list' ? 'List' : 'Grid'}
+            {viewMode === "list" ? "List" : "Grid"}
           </button>
         </div>
       </div>
 
       {/* Mobile Category Selector */}
-      <div className="md:hidden border-t" style={{ borderColor: 'var(--card-border)' }}>
+      <div
+        className="md:hidden border-t"
+        style={{ borderColor: "var(--card-border)" }}
+      >
         <div className="max-w-[1400px] mx-auto px-4 py-3">
           <div className="flex items-center gap-3">
             <select
@@ -468,9 +560,9 @@ const SecondNavbar = () => {
               }}
               className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
               style={{
-                background: 'var(--card-bg)',
-                color: 'var(--primary-text)',
-                borderColor: 'var(--card-border)'
+                background: "var(--card-bg)",
+                color: "var(--primary-text)",
+                borderColor: "var(--card-border)",
               }}
             >
               <option value="all">{language === "ar" ? "الكل" : "All"}</option>
@@ -500,35 +592,57 @@ const SecondNavbar = () => {
             </select>
 
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 className="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200"
                 style={{
-                  background: 'var(--card-bg)',
-                  color: 'var(--secondary-text)',
-                  borderColor: 'var(--card-border)'
+                  background: "var(--card-bg)",
+                  color: "var(--secondary-text)",
+                  borderColor: "var(--card-border)",
                 }}
                 onClick={() => {
                   window.dispatchEvent(new Event("toggleProductFilter"));
                 }}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
                   <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46" />
                 </svg>
               </button>
-              <button 
+              <button
                 className={`p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 ${
-                  viewMode === 'list' ? 'bg-blue-600 text-white' : ''
+                  viewMode === "list" ? "bg-blue-600 text-white" : ""
                 }`}
                 style={{
-                  background: viewMode === 'list' ? 'var(--accent-text)' : 'var(--card-bg)',
-                  color: viewMode === 'list' ? 'white' : 'var(--secondary-text)',
-                  borderColor: viewMode === 'list' ? 'var(--accent-text)' : 'var(--card-border)'
+                  background:
+                    viewMode === "list"
+                      ? "var(--accent-text)"
+                      : "var(--card-bg)",
+                  color:
+                    viewMode === "list" ? "white" : "var(--secondary-text)",
+                  borderColor:
+                    viewMode === "list"
+                      ? "var(--accent-text)"
+                      : "var(--card-border)",
                 }}
                 onClick={handleViewModeToggle}
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
-                  {viewMode === 'list' ? (
-                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  {viewMode === "list" ? (
+                    <path
+                      d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   ) : (
                     <>
                       <rect x="3" y="3" width="7" height="7" />

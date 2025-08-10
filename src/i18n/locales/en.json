@@ -97,7 +97,11 @@
     "quantity": "Quantity",
     "price": "Price",
     "addedToCart": "Added to cart successfully",
-    "addToCart": "Add to Cart"
+    "addToCart": "Add to Cart",
+    "clearCart": "Clear Cart",
+    "apply": "Apply",
+    "free": "FREE",
+    "promoPlaceholder": "Enter promo code"
   },
   "product": {
     "addToCart": "Add to Cart",
@@ -106,7 +110,9 @@
     "inStock": "In Stock",
     "reviews": "Reviews",
     "description": "Description",
-    "specifications": "Specifications",
+    "specifications": {
+      "warranty": "Warranty"
+    },
     "relatedProducts": "Related Products",
     "share": "Share",
     "favorite": "Favorite",
@@ -250,6 +256,60 @@
     "emailInvalid": "Please enter a valid email address",
     "phoneInvalid": "Please enter a valid phone number",
     "cityRequired": "City is required when street is provided",
-    "countryRequired": "Country is required when city is provided"
+    "countryRequired": "Country is required when city is provided",
+    "orders": "Orders",
+    "orderId": "Order ID",
+    "status": "Status",
+    "total": "Total",
+    "shippingAddress": "Shipping Address",
+    "payment": "Payment",
+    "paymentMethod": "Payment Method",
+    "paymentStatus": "Payment Status",
+    "items": "Items",
+    "product": "Product",
+    "quantity": "Quantity",
+    "price": "Price",
+    "orderedAt": "Ordered At",
+    "noOrders": "No orders found",
+    "noOrdersDesc": "You haven't placed any orders yet.",
+    "deletedProduct": "Deleted Product",
+    "cancelOrder": "Cancel Order",
+    "cancelSuccess": "Order cancelled successfully",
+    "cancelled": "Cancelled"
+  },
+  "productDetails": {
+    "buyNow": "Buy Now",
+    "features": {
+      "returns": "Easy Returns",
+      "freeShipping": "Free Shipping",
+      "securePayment": "Secure Payment"
+    },
+    "tabs": {
+      "description": "Description",
+      "specifications": "Specifications",
+      "reviews": "Reviews"
+    },
+    "relatedProducts": "Related Products",
+    "inCartEn": "Added to cart!",
+    "addToCartSuccessEn": "Product added to cart successfully!",
+    "inStock": "In Stock ({{count}})",
+    "outOfStock": "Out of Stock",
+    "reviews": {
+      "basedOn": "Based on {{count}} reviews"
+    }
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "tryDemo": "Try Demo",
+    "or": "or",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "dontHaveAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "welcomeBack": "Welcome back!",
+    "signInToContinue": "Sign in to continue",
+    "email": "Email",
+    "password": "Password"
   }
-} 
+}
